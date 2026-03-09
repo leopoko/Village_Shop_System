@@ -125,8 +125,8 @@ public class TradeListOverlay {
             // Item icon (16x16)
             g.renderItem(e.icon, ox + PADDING + 1, rowY + 1);
 
-            // Item name (dark gray, no shadow)
-            g.drawString(font, e.name, ox + PADDING + 20, rowY + 5, 0xFF404040, false);
+            // Item name (strip formatting for readability on light panel)
+            g.drawString(font, e.name.getString(), ox + PADDING + 20, rowY + 5, 0xFF404040, false);
 
             // Price (right-aligned, with shadow for outline effect)
             int pw = font.width(e.price);
