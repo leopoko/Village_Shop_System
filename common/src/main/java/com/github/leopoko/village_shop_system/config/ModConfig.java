@@ -30,7 +30,7 @@ public final class ModConfig {
 
     // === Trade Rates ===
     public static int sellingEmeraldPenalty = 1;
-    public static double purchasePriceMultiplier = 1.2;
+    public static double purchasePriceMultiplier = 5.0;
     public static double foodPricePerHunger = 0.25;
     public static int potionBasePrice = 3;
     public static double toolDurabilityFactor = 0.005;

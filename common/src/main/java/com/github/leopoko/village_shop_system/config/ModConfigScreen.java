@@ -53,7 +53,7 @@ public final class ModConfigScreen {
                         Component.translatable("config.village_shop_system.min_shelves_to_visit"),
                         ModConfig.minShelvesToVisit)
                 .setDefaultValue(1)
-                .setMin(1).setMax(10)
+                .setMin(1).setMax(50)
                 .setTooltip(Component.translatable("config.village_shop_system.min_shelves_to_visit.tooltip"))
                 .setSaveConsumer(val -> ModConfig.minShelvesToVisit = val)
                 .build());
@@ -62,7 +62,7 @@ public final class ModConfigScreen {
                         Component.translatable("config.village_shop_system.max_shelves_to_visit"),
                         ModConfig.maxShelvesToVisit)
                 .setDefaultValue(3)
-                .setMin(1).setMax(10)
+                .setMin(1).setMax(50)
                 .setTooltip(Component.translatable("config.village_shop_system.max_shelves_to_visit.tooltip"))
                 .setSaveConsumer(val -> ModConfig.maxShelvesToVisit = val)
                 .build());
@@ -101,8 +101,8 @@ public final class ModConfigScreen {
         tradeRates.addEntry(entryBuilder.startDoubleField(
                         Component.translatable("config.village_shop_system.purchase_price_multiplier"),
                         ModConfig.purchasePriceMultiplier)
-                .setDefaultValue(1.2)
-                .setMin(0.5).setMax(5.0)
+                .setDefaultValue(5.0)
+                .setMin(0.5).setMax(50.0)
                 .setTooltip(Component.translatable("config.village_shop_system.purchase_price_multiplier.tooltip"))
                 .setSaveConsumer(val -> ModConfig.purchasePriceMultiplier = val)
                 .build());
@@ -185,7 +185,7 @@ public final class ModConfigScreen {
         behavior.addEntry(entryBuilder.startDoubleField(
                         Component.translatable("config.village_shop_system.shopping_rush_chance"),
                         ModConfig.shoppingRushChance)
-                .setDefaultValue(0.05)
+                .setDefaultValue(0.005)
                 .setMin(0.0).setMax(1.0)
                 .setTooltip(Component.translatable("config.village_shop_system.shopping_rush_chance.tooltip"))
                 .setSaveConsumer(val -> ModConfig.shoppingRushChance = val)
