@@ -17,6 +17,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.npc.Villager;
@@ -54,6 +55,7 @@ public class VillagerShopBehavior {
     private static final double REST_SPOT_RANGE_SQ = 2.25; // 1.5 block horizontal radius for rest spots
     private static final int NAV_TIMEOUT = 600;
     private static final int REGISTER_AUTO_PAY_TIMEOUT = 200; // 10 seconds - auto-pay if stuck
+    private static final int LEAVING_TIMEOUT = 400; // 20 seconds max for leaving navigation
 
     /** Items that villagers keep in inventory when purchased (farmer food sharing items). */
     private static final Set<Item> FARMER_FOOD_ITEMS = Set.of(
@@ -69,7 +71,8 @@ public class VillagerShopBehavior {
         SHOPPING_VISITING_SHELVES,
         SHOPPING_GOING_TO_REGISTER,
         SHOPPING_GOING_TO_REST,
-        RESTING
+        RESTING,
+        LEAVING
     }
 
     private int cooldown = 0;
@@ -135,6 +138,7 @@ public class VillagerShopBehavior {
             case SHOPPING_GOING_TO_REGISTER -> tickRegisterNavigation(villager, serverLevel);
             case SHOPPING_GOING_TO_REST -> tickNavigatingToRestSpot(villager, serverLevel);
             case RESTING -> tickResting(villager, serverLevel);
+            case LEAVING -> tickLeaving(villager, serverLevel);
         }
     }
 
@@ -164,15 +168,13 @@ public class VillagerShopBehavior {
                 return;
             }
 
-            // Not a group shelf, just cooldown
-            resetAll(villager);
-            cooldown = getRandomCooldown(villager);
+            // Not a group shelf, leave the shop area
+            finishAndLeave(villager);
             return;
         }
 
         if (navTimer > NAV_TIMEOUT) {
-            resetAll(villager);
-            cooldown = SEARCH_INTERVAL;
+            finishAndLeave(villager);
             return;
         }
 
@@ -193,8 +195,7 @@ public class VillagerShopBehavior {
         ShopGroupManager manager = ShopGroupManager.get(level);
         ShopGroup group = manager.getGroup(shopGroup);
         if (group == null) {
-            resetAll(villager);
-            cooldown = SEARCH_INTERVAL;
+            finishAndLeave(villager);
             return;
         }
 
@@ -372,16 +373,14 @@ public class VillagerShopBehavior {
 
     private void goToRest(Villager villager, ServerLevel level) {
         if (currentShopGroup == null) {
-            resetAll(villager);
-            cooldown = getRandomCooldown(villager);
+            finishAndLeave(villager);
             return;
         }
 
         ShopGroupManager manager = ShopGroupManager.get(level);
         ShopGroup group = manager.getGroup(currentShopGroup);
         if (group == null) {
-            resetAll(villager);
-            cooldown = getRandomCooldown(villager);
+            finishAndLeave(villager);
             return;
         }
 
@@ -396,15 +395,13 @@ public class VillagerShopBehavior {
         restSpots.addAll(group.getStandingPositions());
 
         if (restSpots.isEmpty()) {
-            resetAll(villager);
-            cooldown = getRandomCooldown(villager);
+            finishAndLeave(villager);
             return;
         }
 
         target = findClosest(villager.blockPosition(), restSpots);
         if (target == null) {
-            resetAll(villager);
-            cooldown = getRandomCooldown(villager);
+            finishAndLeave(villager);
             return;
         }
 
@@ -423,8 +420,7 @@ public class VillagerShopBehavior {
         navTimer++;
 
         if (target == null) {
-            resetAll(villager);
-            cooldown = SEARCH_INTERVAL;
+            finishAndLeave(villager);
             return;
         }
 
@@ -439,9 +435,8 @@ public class VillagerShopBehavior {
         }
 
         if (navTimer > NAV_TIMEOUT) {
-            // Couldn't reach rest spot, just end the shopping session
-            resetAll(villager);
-            cooldown = getRandomCooldown(villager);
+            // Couldn't reach rest spot, leave the shop area
+            finishAndLeave(villager);
             return;
         }
 
@@ -492,9 +487,7 @@ public class VillagerShopBehavior {
         }
 
         if (restTimer <= 0) {
-            standUp(villager);
-            resetAll(villager);
-            cooldown = getRandomCooldown(villager);
+            finishAndLeave(villager);
         }
     }
 
@@ -803,6 +796,85 @@ public class VillagerShopBehavior {
             if (be instanceof SellingShelfBBlockEntity shelfB) {
                 shelfB.flushLocalEmeraldsToRegisters();
             }
+        }
+    }
+
+    // --- LEAVING: navigate away from shop toward a known location ---
+
+    /**
+     * End the shopping session and navigate the villager away from the shop
+     * toward their job site, meeting point, or home.
+     */
+    private void finishAndLeave(Villager villager) {
+        standUp(villager);
+        resetAll(villager);
+
+        BlockPos destination = findLeavingDestination(villager);
+        if (destination != null) {
+            target = destination;
+            state = State.LEAVING;
+            navTimer = 0;
+            villager.getNavigation().moveTo(
+                    destination.getX() + 0.5, destination.getY(), destination.getZ() + 0.5, 0.5);
+        } else {
+            cooldown = getRandomCooldown(villager);
+        }
+    }
+
+    /**
+     * Find a destination for the villager to walk toward when leaving the shop.
+     * Randomly picks from job site, meeting point, or home (if known).
+     */
+    private static BlockPos findLeavingDestination(Villager villager) {
+        var brain = villager.getBrain();
+        List<BlockPos> destinations = new ArrayList<>();
+
+        brain.getMemory(MemoryModuleType.JOB_SITE).ifPresent(globalPos -> {
+            if (globalPos.dimension() == villager.level().dimension()) {
+                destinations.add(globalPos.pos());
+            }
+        });
+
+        brain.getMemory(MemoryModuleType.MEETING_POINT).ifPresent(globalPos -> {
+            if (globalPos.dimension() == villager.level().dimension()) {
+                destinations.add(globalPos.pos());
+            }
+        });
+
+        brain.getMemory(MemoryModuleType.HOME).ifPresent(globalPos -> {
+            if (globalPos.dimension() == villager.level().dimension()) {
+                destinations.add(globalPos.pos());
+            }
+        });
+
+        if (destinations.isEmpty()) return null;
+        return destinations.get(villager.getRandom().nextInt(destinations.size()));
+    }
+
+    private void tickLeaving(Villager villager, ServerLevel level) {
+        navTimer++;
+
+        if (target == null) {
+            state = State.IDLE;
+            navTimer = 0;
+            cooldown = getRandomCooldown(villager);
+            return;
+        }
+
+        double distSq = villager.distanceToSqr(
+                target.getX() + 0.5, target.getY() + 0.5, target.getZ() + 0.5);
+
+        if (distSq <= 9.0 || navTimer > LEAVING_TIMEOUT) {
+            target = null;
+            state = State.IDLE;
+            navTimer = 0;
+            cooldown = getRandomCooldown(villager);
+            return;
+        }
+
+        if (navTimer % 40 == 0) {
+            villager.getNavigation().moveTo(
+                    target.getX() + 0.5, target.getY(), target.getZ() + 0.5, 0.5);
         }
     }
 
