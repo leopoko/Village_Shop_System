@@ -71,9 +71,9 @@ public class PurchaseShelfMenu extends AbstractContainerMenu {
                     // Clicking with empty hand clears the config
                     container.setItem(PurchaseShelfBlockEntity.CONFIG_SLOT, ItemStack.EMPTY);
                 } else {
-                    // Set config to carried item type (don't consume the item)
+                    // Set config to carried item (preserve components like enchantments)
                     container.setItem(PurchaseShelfBlockEntity.CONFIG_SLOT,
-                            new ItemStack(carried.getItem(), 1));
+                            carried.copyWithCount(1));
                 }
                 return;
             }
