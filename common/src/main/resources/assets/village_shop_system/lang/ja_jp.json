@@ -1,0 +1,36 @@
+{
+  "itemGroup.village_shop_system": "村の商店システム",
+
+  "block.village_shop_system.selling_shelf": "売却棚",
+  "block.village_shop_system.selling_shelf_b": "売却棚（会計連携）",
+  "block.village_shop_system.purchase_shelf": "購入棚",
+  "block.village_shop_system.register_block": "レジ",
+
+  "item.village_shop_system.chair_setting_stick": "店舗設定棒",
+  "item.village_shop_system.chair_setting_stick.mode.shop_group": "店グループ設定",
+  "item.village_shop_system.chair_setting_stick.mode.chair": "椅子設定",
+  "item.village_shop_system.chair_setting_stick.mode.standing_position": "立ち位置設定",
+  "item.village_shop_system.chair_setting_stick.mode_changed": "モード: %s",
+  "item.village_shop_system.chair_setting_stick.open_settings": "店グループ設定を開く...",
+  "item.village_shop_system.chair_setting_stick.no_group": "先に店グループを設定してください！",
+  "item.village_shop_system.chair_setting_stick.chair_set": "椅子をグループに登録しました: %s",
+  "item.village_shop_system.chair_setting_stick.not_stairs": "階段ブロックをクリックしてください！",
+  "item.village_shop_system.chair_setting_stick.position_set": "立ち位置をグループに登録しました: %s",
+  "item.village_shop_system.chair_setting_stick.group_applied": "店グループを設定しました: %s",
+
+  "tooltip.village_shop_system.sell_price": "売却: %dエメラルド",
+  "tooltip.village_shop_system.sell_price_ratio": "売却: %d個 = %dエメラルド",
+  "tooltip.village_shop_system.sell_total": "スタック(%d個): 合計%dエメラルド",
+  "tooltip.village_shop_system.buy_price": "購入価格: %dエメラルド",
+  "tooltip.village_shop_system.not_tradeable": "取引不可",
+  "tooltip.village_shop_system.price_unknown": "価格: 読み込み中...",
+  "tooltip.village_shop_system.shop_group": "店グループ: %s",
+
+  "tooltip.village_shop_system.purchase_shelf.config_empty": "アイテムを持ってクリックで購入対象を設定",
+  "tooltip.village_shop_system.purchase_shelf.config_set": "購入品: %s",
+  "tooltip.village_shop_system.purchase_shelf.price": "コスト: %dエメラルド/個",
+
+  "screen.village_shop_system.shop_group_setting": "店グループ設定",
+  "screen.village_shop_system.shop_group_setting.label": "グループ名:",
+  "screen.village_shop_system.shop_group_setting.confirm": "確定"
+}

@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "village_shop_system:block/selling_shelf_b" },
+    "facing=south": { "model": "village_shop_system:block/selling_shelf_b", "y": 180 },
+    "facing=west": { "model": "village_shop_system:block/selling_shelf_b", "y": 270 },
+    "facing=east": { "model": "village_shop_system:block/selling_shelf_b", "y": 90 }
+  }
+}
