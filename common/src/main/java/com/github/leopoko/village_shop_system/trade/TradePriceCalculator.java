@@ -1,6 +1,7 @@
 package com.github.leopoko.village_shop_system.trade;
 
 import com.github.leopoko.village_shop_system.config.ModConfig;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
@@ -8,6 +9,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.TieredItem;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 /**
  * Calculates trade prices for items.
@@ -108,6 +111,49 @@ public final class TradePriceCalculator {
         }
 
         return 0;
+    }
+
+    /**
+     * Calculate buy price from an ItemStack (supports enchanted books with component data).
+     * Falls back to calculateBuyPrice(Item, int) for non-enchanted-book items.
+     *
+     * @param stack the item stack being purchased
+     * @param count how many items to buy
+     * @return emerald cost (0 if not tradeable)
+     */
+    public static int calculateBuyPrice(ItemStack stack, int count) {
+        if (stack.is(Items.ENCHANTED_BOOK)) {
+            int perItem = calculateEnchantedBookPrice(stack);
+            if (perItem > 0) return perItem * count;
+        }
+        return calculateBuyPrice(stack.getItem(), count);
+    }
+
+    /**
+     * Calculate the buy price for an enchanted book based on its stored enchantments.
+     * Price = sum of (enchantedBookBasePrice * level) for each enchantment, multiplied by purchasePriceMultiplier.
+     */
+    private static int calculateEnchantedBookPrice(ItemStack stack) {
+        ItemEnchantments enchantments = stack.getOrDefault(DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY);
+        if (enchantments.isEmpty()) return 0;
+
+        int totalPrice = 0;
+        for (var entry : enchantments.entrySet()) {
+            int level = entry.getIntValue();
+            totalPrice += ModConfig.enchantedBookBasePrice * level;
+        }
+        return Math.max(1, (int) Math.ceil(totalPrice * ModConfig.purchasePriceMultiplier));
+    }
+
+    /**
+     * Check if an ItemStack is buyable (supports enchanted books with component data).
+     */
+    public static boolean isBuyableStack(ItemStack stack) {
+        if (stack.is(Items.ENCHANTED_BOOK)) {
+            ItemEnchantments enchantments = stack.getOrDefault(DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY);
+            return !enchantments.isEmpty();
+        }
+        return isTradeable(stack.getItem());
     }
 
     /**

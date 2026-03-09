@@ -28,11 +28,9 @@ import java.util.Set;
 public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu> {
     /** Position and size of the info "?" button, relative to GUI origin */
     private static final int INFO_X = 116, INFO_Y = 4, INFO_W = 9, INFO_H = 10;
-    /** Maximum items shown in the trade info tooltip */
-    private static final int MAX_TOOLTIP_ITEMS = 18;
 
-    /** Cached trade info tooltip (built lazily) */
-    private List<Component> tradeInfoTooltip;
+    /** Trade list overlay (replaces tooltip) */
+    private TradeListOverlay tradeListOverlay;
 
     /** Group UI elements (only for SellingShelfB) */
     private EditBox groupNameField;
@@ -114,13 +112,6 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
 
-        // Show trade info tooltip when hovering the "?" button
-        int ix = leftPos + INFO_X;
-        int iy = topPos + INFO_Y;
-        if (mouseX >= ix && mouseX < ix + INFO_W && mouseY >= iy && mouseY < iy + INFO_H) {
-            guiGraphics.renderComponentTooltip(font, getTradeInfoTooltip(), mouseX, mouseY);
-        }
-
         // Draw group UI elements
         if (menu.hasGroupUI()) {
             guiGraphics.drawString(font,
@@ -131,6 +122,32 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
                 groupNameField.render(guiGraphics, mouseX, mouseY, partialTick);
             }
         }
+
+        // Render trade list overlay on top
+        if (tradeListOverlay != null) {
+            tradeListOverlay.render(guiGraphics, font, mouseX, mouseY);
+        }
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // Handle overlay clicks first
+        if (tradeListOverlay != null && tradeListOverlay.isVisible()) {
+            if (tradeListOverlay.mouseClicked(mouseX, mouseY, button)) {
+                return true;
+            }
+        }
+
+        // Check "?" button click to toggle overlay
+        int ix = leftPos + INFO_X;
+        int iy = topPos + INFO_Y;
+        if (mouseX >= ix && mouseX < ix + INFO_W && mouseY >= iy && mouseY < iy + INFO_H) {
+            ensureTradeListOverlay();
+            tradeListOverlay.toggle();
+            return true;
+        }
+
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
@@ -213,64 +230,45 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
     }
 
     /**
-     * Build and cache the trade info tooltip showing all sellable items.
+     * Build the trade list overlay lazily.
      */
-    private List<Component> getTradeInfoTooltip() {
-        if (tradeInfoTooltip != null) return tradeInfoTooltip;
-
-        tradeInfoTooltip = new ArrayList<>();
-        tradeInfoTooltip.add(Component.translatable("tooltip.village_shop_system.trade_info_header"));
+    private void ensureTradeListOverlay() {
+        if (tradeListOverlay != null) return;
 
         if (!TradeRegistry.isInitialized()) {
             if (Minecraft.getInstance().player != null) {
                 TradeRegistry.initialize(Minecraft.getInstance().player);
             } else {
-                tradeInfoTooltip.add(Component.translatable("tooltip.village_shop_system.price_unknown")
-                        .withStyle(ChatFormatting.GRAY));
-                return tradeInfoTooltip;
+                return;
             }
         }
 
-        // Collect sellable items with prices
+        List<TradeListOverlay.Entry> entries = new ArrayList<>();
+
+        // Collect sellable items from vanilla trades
         Set<Item> sellable = TradeRegistry.getAllSellableItems();
-        List<ItemPriceEntry> entries = new ArrayList<>();
         for (Item item : sellable) {
             int[] ratio = TradePriceCalculator.getSellTradeRatio(item);
             if (ratio != null) {
-                entries.add(new ItemPriceEntry(item, ratio[0], ratio[1]));
+                ItemStack icon = new ItemStack(item);
+                Component name = item.getDescription();
+                String priceStr;
+                if (ratio[1] == 1) {
+                    priceStr = ratio[0] + "em";
+                } else {
+                    priceStr = ratio[1] + " \u2192 " + ratio[0] + "em";
+                }
+                Component price = Component.literal(priceStr).withStyle(ChatFormatting.GREEN);
+                entries.add(new TradeListOverlay.Entry(icon, name, price));
             }
         }
 
         // Sort by item name
-        entries.sort(Comparator.comparing(e -> e.item.getDescription().getString()));
+        entries.sort(Comparator.comparing(e -> e.name().getString()));
 
-        // Add entries to tooltip (cap at MAX_TOOLTIP_ITEMS)
-        int shown = Math.min(entries.size(), MAX_TOOLTIP_ITEMS);
-        for (int i = 0; i < shown; i++) {
-            ItemPriceEntry entry = entries.get(i);
-            Component itemName = entry.item.getDescription();
-            String priceStr;
-            if (entry.itemCount == 1) {
-                priceStr = entry.emeralds + "em";
-            } else {
-                priceStr = entry.itemCount + " → " + entry.emeralds + "em";
-            }
-            tradeInfoTooltip.add(Component.literal(" ")
-                    .append(itemName.copy().withStyle(ChatFormatting.WHITE))
-                    .append(Component.literal(": " + priceStr).withStyle(ChatFormatting.GREEN)));
-        }
-
-        if (entries.size() > MAX_TOOLTIP_ITEMS) {
-            tradeInfoTooltip.add(Component.translatable("tooltip.village_shop_system.trade_info_more",
-                    entries.size() - MAX_TOOLTIP_ITEMS).withStyle(ChatFormatting.GRAY));
-        }
-
-        // Add food & tool notes
-        tradeInfoTooltip.add(Component.translatable("tooltip.village_shop_system.trade_info_food"));
-        tradeInfoTooltip.add(Component.translatable("tooltip.village_shop_system.trade_info_tools"));
-
-        return tradeInfoTooltip;
+        Component header = Component.translatable("tooltip.village_shop_system.trade_info_header");
+        tradeListOverlay = new TradeListOverlay(entries, header);
+        // Position overlay to the right of the GUI
+        tradeListOverlay.setPosition(leftPos + imageWidth + 4, topPos);
     }
-
-    private record ItemPriceEntry(Item item, int emeralds, int itemCount) {}
 }

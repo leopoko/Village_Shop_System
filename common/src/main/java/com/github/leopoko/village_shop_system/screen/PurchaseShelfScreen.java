@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -22,11 +23,8 @@ public class PurchaseShelfScreen extends AbstractContainerScreen<PurchaseShelfMe
     private static final int CONFIG_HIGHLIGHT_COLOR = 0xFFFFAA00;
     /** Position and size of the info "?" button, relative to GUI origin */
     private static final int INFO_X = 65, INFO_Y = 4, INFO_W = 9, INFO_H = 10;
-    /** Maximum items shown in the trade info tooltip */
-    private static final int MAX_TOOLTIP_ITEMS = 18;
-
-    /** Cached trade info tooltip (built lazily) */
-    private List<Component> tradeInfoTooltip;
+    /** Trade list overlay (replaces tooltip) */
+    private TradeListOverlay tradeListOverlay;
 
     public PurchaseShelfScreen(PurchaseShelfMenu menu, Inventory playerInv, Component title) {
         super(menu, playerInv, title);
@@ -62,82 +60,107 @@ public class PurchaseShelfScreen extends AbstractContainerScreen<PurchaseShelfMe
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderTooltip(guiGraphics, mouseX, mouseY);
 
-        // Show trade info tooltip when hovering the "?" button
-        int ix = leftPos + INFO_X;
-        int iy = topPos + INFO_Y;
-        if (mouseX >= ix && mouseX < ix + INFO_W && mouseY >= iy && mouseY < iy + INFO_H) {
-            guiGraphics.renderComponentTooltip(font, getTradeInfoTooltip(), mouseX, mouseY);
-            return;
-        }
-
-        // Render config slot tooltip with price info
-        Slot configSlot = this.menu.slots.get(PurchaseShelfMenu.CONFIG_SLOT_INDEX);
-        if (isHovering(configSlot.x, configSlot.y, 16, 16, mouseX, mouseY)) {
-            List<Component> tooltip = new ArrayList<>();
-            ItemStack configItem = configSlot.getItem();
-            if (configItem.isEmpty()) {
-                tooltip.add(Component.translatable("tooltip.village_shop_system.purchase_shelf.config_empty"));
-            } else {
-                tooltip.add(Component.translatable("tooltip.village_shop_system.purchase_shelf.config_set",
-                        configItem.getHoverName()));
-                int price = TradePriceCalculator.calculateBuyPrice(configItem.getItem(), 1);
-                if (price > 0) {
-                    tooltip.add(Component.translatable("tooltip.village_shop_system.purchase_shelf.price", price));
-                }
-            }
-            guiGraphics.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
+        // Render trade list overlay on top
+        if (tradeListOverlay != null) {
+            tradeListOverlay.render(guiGraphics, font, mouseX, mouseY);
         }
     }
 
-    /**
-     * Build and cache the trade info tooltip showing all buyable items.
-     */
-    private List<Component> getTradeInfoTooltip() {
-        if (tradeInfoTooltip != null) return tradeInfoTooltip;
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        // Handle overlay clicks first
+        if (tradeListOverlay != null && tradeListOverlay.isVisible()) {
+            if (tradeListOverlay.mouseClicked(mouseX, mouseY, button)) {
+                return true;
+            }
+        }
 
-        tradeInfoTooltip = new ArrayList<>();
-        tradeInfoTooltip.add(Component.translatable("tooltip.village_shop_system.trade_info_buy_header"));
+        // Check "?" button click to toggle overlay
+        int ix = leftPos + INFO_X;
+        int iy = topPos + INFO_Y;
+        if (mouseX >= ix && mouseX < ix + INFO_W && mouseY >= iy && mouseY < iy + INFO_H) {
+            ensureTradeListOverlay();
+            tradeListOverlay.toggle();
+            return true;
+        }
+
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        if (this.menu.getCarried().isEmpty() && this.hoveredSlot != null) {
+            int slotIndex = this.hoveredSlot.index;
+
+            // Config slot: show purchase info merged into single tooltip
+            if (slotIndex == PurchaseShelfMenu.CONFIG_SLOT_INDEX) {
+                ItemStack configItem = this.hoveredSlot.getItem();
+                List<Component> tooltip = new ArrayList<>();
+                if (configItem.isEmpty()) {
+                    tooltip.add(Component.translatable("tooltip.village_shop_system.purchase_shelf.config_empty"));
+                } else {
+                    // Include the item's normal tooltip first
+                    tooltip.addAll(getTooltipFromContainerItem(configItem));
+                    // Then add price info
+                    tooltip.add(Component.translatable("tooltip.village_shop_system.purchase_shelf.config_set",
+                            configItem.getHoverName()).withStyle(ChatFormatting.GOLD));
+                    int price = TradePriceCalculator.calculateBuyPrice(configItem, 1);
+                    if (price > 0) {
+                        tooltip.add(Component.translatable("tooltip.village_shop_system.purchase_shelf.price", price)
+                                .withStyle(ChatFormatting.GREEN));
+                    }
+                }
+                guiGraphics.renderTooltip(this.font, tooltip,
+                        configItem.isEmpty() ? java.util.Optional.empty() : configItem.getTooltipImage(),
+                        mouseX, mouseY);
+                return;
+            }
+
+            // Input slots (emerald slots): show normal tooltip
+            if (this.hoveredSlot.hasItem()) {
+                ItemStack stack = this.hoveredSlot.getItem();
+                guiGraphics.renderTooltip(this.font, getTooltipFromContainerItem(stack),
+                        stack.getTooltipImage(), mouseX, mouseY);
+                return;
+            }
+        }
+        super.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    /**
+     * Build the trade list overlay lazily.
+     */
+    private void ensureTradeListOverlay() {
+        if (tradeListOverlay != null) return;
 
         if (!TradeRegistry.isInitialized()) {
             if (net.minecraft.client.Minecraft.getInstance().player != null) {
                 TradeRegistry.initialize(net.minecraft.client.Minecraft.getInstance().player);
             } else {
-                tradeInfoTooltip.add(Component.translatable("tooltip.village_shop_system.price_unknown")
-                        .withStyle(ChatFormatting.GRAY));
-                return tradeInfoTooltip;
+                return;
             }
         }
 
-        // Collect buyable items with prices
+        List<TradeListOverlay.Entry> entries = new ArrayList<>();
+
+        // Collect buyable items from vanilla trades
         Set<Item> buyable = TradeRegistry.getAllBuyableItems();
-        List<ItemPriceEntry> entries = new ArrayList<>();
         for (Item item : buyable) {
             int price = TradePriceCalculator.calculateBuyPrice(item, 1);
             if (price > 0) {
-                entries.add(new ItemPriceEntry(item, price));
+                ItemStack icon = new ItemStack(item);
+                Component name = item.getDescription();
+                Component priceComp = Component.literal(price + "em").withStyle(ChatFormatting.GOLD);
+                entries.add(new TradeListOverlay.Entry(icon, name, priceComp));
             }
         }
 
         // Sort by item name
-        entries.sort(Comparator.comparing(e -> e.item.getDescription().getString()));
+        entries.sort(Comparator.comparing(e -> e.name().getString()));
 
-        // Add entries to tooltip (cap at MAX_TOOLTIP_ITEMS)
-        int shown = Math.min(entries.size(), MAX_TOOLTIP_ITEMS);
-        for (int i = 0; i < shown; i++) {
-            ItemPriceEntry entry = entries.get(i);
-            Component itemName = entry.item.getDescription();
-            tradeInfoTooltip.add(Component.literal(" ")
-                    .append(itemName.copy().withStyle(ChatFormatting.WHITE))
-                    .append(Component.literal(": " + entry.price + "em").withStyle(ChatFormatting.GOLD)));
-        }
-
-        if (entries.size() > MAX_TOOLTIP_ITEMS) {
-            tradeInfoTooltip.add(Component.translatable("tooltip.village_shop_system.trade_info_more",
-                    entries.size() - MAX_TOOLTIP_ITEMS).withStyle(ChatFormatting.GRAY));
-        }
-
-        return tradeInfoTooltip;
+        Component header = Component.translatable("tooltip.village_shop_system.trade_info_buy_header");
+        tradeListOverlay = new TradeListOverlay(entries, header);
+        // Position overlay to the right of the GUI
+        tradeListOverlay.setPosition(leftPos + imageWidth + 4, topPos);
     }
-
-    private record ItemPriceEntry(Item item, int price) {}
 }

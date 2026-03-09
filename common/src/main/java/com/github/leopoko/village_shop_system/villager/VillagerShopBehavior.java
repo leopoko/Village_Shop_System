@@ -75,7 +75,7 @@ public class VillagerShopBehavior {
         LEAVING
     }
 
-    private int cooldown = 0;
+    private int cooldown = -1; // -1 = uninitialized, randomized on first tick to prevent startup rush
     private int navTimer = 0;
     private BlockPos target = null;
     private State state = State.IDLE;
@@ -102,11 +102,65 @@ public class VillagerShopBehavior {
     private ItemStack heldItem = ItemStack.EMPTY;
     private ItemStack lastPurchasedFood = ItemStack.EMPTY;
 
+    // World load cleanup flag
+    private boolean needsCleanupOnLoad = false;
+
+    /**
+     * Save behavior state to NBT for world persistence.
+     */
+    public CompoundTag save() {
+        CompoundTag tag = new CompoundTag();
+        tag.putInt("Cooldown", cooldown);
+        tag.putString("State", state.name());
+        return tag;
+    }
+
+    /**
+     * Load behavior state from NBT after world reload.
+     * Any active shopping state is reset to IDLE with cleanup scheduled for the first tick.
+     */
+    public void load(CompoundTag tag) {
+        if (tag.contains("Cooldown")) {
+            cooldown = tag.getInt("Cooldown");
+        }
+        String savedState = tag.getString("State");
+        if (!savedState.isEmpty() && !savedState.equals("IDLE")) {
+            needsCleanupOnLoad = true;
+        }
+        // Always reset to IDLE on load - active states cannot be reliably restored
+        state = State.IDLE;
+    }
+
+    /**
+     * Clean up transient state after world reload.
+     * Handles: chair ArmorStand dismount, held item clearing, cooldown setting.
+     */
+    private void cleanupAfterLoad(Villager villager) {
+        // Dismount from chair ArmorStand and discard it
+        if (villager.isPassenger() && villager.getVehicle() instanceof ArmorStand seat) {
+            villager.stopRiding();
+            if (seat.getTags().contains("village_shop_system_seat")) {
+                seat.discard();
+            }
+        }
+        // Clear held item from shopping session
+        clearHeldItem(villager);
+        // Set cooldown to prevent immediate shopping after reload
+        cooldown = getRandomCooldown(villager);
+    }
+
     /**
      * Called every tick from the villager's customServerAiStep.
      */
     public void tick(Villager villager) {
         if (!(villager.level() instanceof ServerLevel serverLevel)) return;
+
+        // One-time cleanup after world load
+        if (needsCleanupOnLoad) {
+            needsCleanupOnLoad = false;
+            cleanupAfterLoad(villager);
+            return;
+        }
 
         // Baby villagers don't use shops
         if (villager.isBaby()) return;
@@ -123,6 +177,12 @@ public class VillagerShopBehavior {
         // Initialize trade registry lazily
         if (!TradeRegistry.isInitialized()) {
             TradeRegistry.initialize(villager);
+        }
+
+        // First tick: randomize cooldown to prevent world-load shopping rush
+        if (cooldown == -1) {
+            cooldown = villager.getRandom().nextInt(ModConfig.villagerShoppingCooldownTicks);
+            return;
         }
 
         // Cooldown
@@ -500,6 +560,8 @@ public class VillagerShopBehavior {
         seat.setNoGravity(true);
         seat.setSilent(true);
         seat.setInvulnerable(true);
+        // Tag for identification during world-load cleanup
+        seat.addTag("village_shop_system_seat");
         // Set Marker flag via NBT to remove hitbox (setMarker is private)
         CompoundTag tag = new CompoundTag();
         seat.saveWithoutId(tag);

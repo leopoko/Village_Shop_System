@@ -35,6 +35,7 @@ public final class ModConfig {
     public static int potionBasePrice = 3;
     public static double toolDurabilityFactor = 0.005;
     public static double toolSpeedFactor = 0.5;
+    public static int enchantedBookBasePrice = 5;
 
     // === Behavior ===
     public static int minRestTicks = 100;
@@ -62,6 +63,7 @@ public final class ModConfig {
         int potionBasePrice = 3;
         double toolDurabilityFactor = 0.005;
         double toolSpeedFactor = 0.5;
+        int enchantedBookBasePrice = 5;
 
         // Behavior
         int minRestTicks = 100;
@@ -110,6 +112,7 @@ public final class ModConfig {
         data.potionBasePrice = potionBasePrice;
         data.toolDurabilityFactor = toolDurabilityFactor;
         data.toolSpeedFactor = toolSpeedFactor;
+        data.enchantedBookBasePrice = enchantedBookBasePrice;
         data.minRestTicks = minRestTicks;
         data.maxRestTicks = maxRestTicks;
         data.pauseCooldownWhileSleeping = pauseCooldownWhileSleeping;
@@ -138,6 +141,7 @@ public final class ModConfig {
         potionBasePrice = data.potionBasePrice;
         toolDurabilityFactor = data.toolDurabilityFactor;
         toolSpeedFactor = data.toolSpeedFactor;
+        enchantedBookBasePrice = data.enchantedBookBasePrice;
         minRestTicks = data.minRestTicks;
         maxRestTicks = data.maxRestTicks;
         pauseCooldownWhileSleeping = data.pauseCooldownWhileSleeping;

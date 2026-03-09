@@ -2,6 +2,7 @@ package com.github.leopoko.village_shop_system.mixin;
 
 import com.github.leopoko.village_shop_system.villager.ShopBehaviorAccessor;
 import com.github.leopoko.village_shop_system.villager.VillagerShopBehavior;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.npc.Villager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -40,6 +41,18 @@ public abstract class VillagerMixin implements ShopBehaviorAccessor {
             village_shop_system$shopBehavior.cleanup(self);
         } else {
             village_shop_system$shopBehavior.tick(self);
+        }
+    }
+
+    @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
+    private void village_shop_system$onSaveData(CompoundTag tag, CallbackInfo ci) {
+        tag.put("VillageShopSystem", village_shop_system$shopBehavior.save());
+    }
+
+    @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
+    private void village_shop_system$onLoadData(CompoundTag tag, CallbackInfo ci) {
+        if (tag.contains("VillageShopSystem")) {
+            village_shop_system$shopBehavior.load(tag.getCompound("VillageShopSystem"));
         }
     }
 }

@@ -80,6 +80,8 @@
   "config.village_shop_system.tool_durability_factor.tooltip": "耐久値1あたりの価格係数（デフォルト: 0.005）",
   "config.village_shop_system.tool_speed_factor": "ツール速度係数",
   "config.village_shop_system.tool_speed_factor.tooltip": "採掘速度1あたりの価格係数（デフォルト: 0.5）",
+  "config.village_shop_system.enchanted_book_base_price": "エンチャント本基本価格",
+  "config.village_shop_system.enchanted_book_base_price.tooltip": "エンチャント本のレベル1あたりの基本エメラルド価格（デフォルト: 5）",
 
   "config.village_shop_system.min_rest_ticks": "最小休憩時間",
   "config.village_shop_system.min_rest_ticks.tooltip": "椅子/立ち位置での最小休憩時間（tick単位、デフォルト: 100 = 5秒）",

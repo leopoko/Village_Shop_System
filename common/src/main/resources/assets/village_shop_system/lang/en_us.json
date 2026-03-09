@@ -80,6 +80,8 @@
   "config.village_shop_system.tool_durability_factor.tooltip": "Price factor per durability point (default: 0.005)",
   "config.village_shop_system.tool_speed_factor": "Tool Speed Factor",
   "config.village_shop_system.tool_speed_factor.tooltip": "Price factor per mining speed point (default: 0.5)",
+  "config.village_shop_system.enchanted_book_base_price": "Enchanted Book Base Price",
+  "config.village_shop_system.enchanted_book_base_price.tooltip": "Base emerald price per enchantment level for enchanted books (default: 5)",
 
   "config.village_shop_system.min_rest_ticks": "Min Rest Time",
   "config.village_shop_system.min_rest_ticks.tooltip": "Minimum ticks a villager rests at chair/standing position (default: 100 = 5 sec)",

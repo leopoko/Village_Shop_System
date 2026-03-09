@@ -143,6 +143,15 @@ public final class ModConfigScreen {
                 .setSaveConsumer(val -> ModConfig.toolSpeedFactor = val)
                 .build());
 
+        tradeRates.addEntry(entryBuilder.startIntField(
+                        Component.translatable("config.village_shop_system.enchanted_book_base_price"),
+                        ModConfig.enchantedBookBasePrice)
+                .setDefaultValue(5)
+                .setMin(1).setMax(64)
+                .setTooltip(Component.translatable("config.village_shop_system.enchanted_book_base_price.tooltip"))
+                .setSaveConsumer(val -> ModConfig.enchantedBookBasePrice = val)
+                .build());
+
         // === Behavior Category ===
         ConfigCategory behavior = builder.getOrCreateCategory(
                 Component.translatable("config.village_shop_system.category.behavior"));

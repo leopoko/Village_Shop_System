@@ -75,7 +75,7 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
     }
 
     public void setConfiguredItem(ItemStack item) {
-        this.configuredItem = item.isEmpty() ? ItemStack.EMPTY : new ItemStack(item.getItem(), 1);
+        this.configuredItem = item.isEmpty() ? ItemStack.EMPTY : item.copyWithCount(1);
         setChanged();
         syncToClient();
     }
@@ -90,7 +90,7 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
     public int processPurchases() {
         if (configuredItem.isEmpty()) return 0;
 
-        int pricePerItem = TradePriceCalculator.calculateBuyPrice(configuredItem.getItem(), 1);
+        int pricePerItem = TradePriceCalculator.calculateBuyPrice(configuredItem, 1);
         if (pricePerItem <= 0) return 0;
 
         int totalProduced = 0;
@@ -196,7 +196,7 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
      */
     public boolean canTrade() {
         if (configuredItem.isEmpty()) return false;
-        int price = TradePriceCalculator.calculateBuyPrice(configuredItem.getItem(), 1);
+        int price = TradePriceCalculator.calculateBuyPrice(configuredItem, 1);
         return price > 0 && countEmeraldsInInput() >= price && canInsertItem(configuredItem);
     }
 
