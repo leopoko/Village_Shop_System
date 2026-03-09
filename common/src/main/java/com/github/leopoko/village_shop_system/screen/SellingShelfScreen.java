@@ -143,7 +143,9 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
         int iy = topPos + INFO_Y;
         if (mouseX >= ix && mouseX < ix + INFO_W && mouseY >= iy && mouseY < iy + INFO_H) {
             ensureTradeListOverlay();
-            tradeListOverlay.toggle();
+            if (tradeListOverlay != null) {
+                tradeListOverlay.toggle();
+            }
             return true;
         }
 
@@ -229,6 +231,16 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
         }
     }
 
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (tradeListOverlay != null && tradeListOverlay.isVisible()) {
+            if (tradeListOverlay.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) {
+                return true;
+            }
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
     /**
      * Build the trade list overlay lazily.
      */
@@ -258,7 +270,7 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
                 } else {
                     priceStr = ratio[1] + " \u2192 " + ratio[0] + "em";
                 }
-                Component price = Component.literal(priceStr).withStyle(ChatFormatting.GREEN);
+                Component price = Component.literal(priceStr).withStyle(ChatFormatting.DARK_GREEN);
                 entries.add(new TradeListOverlay.Entry(icon, name, price));
             }
         }
@@ -266,9 +278,12 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
         // Sort by item name
         entries.sort(Comparator.comparing(e -> e.name().getString()));
 
-        Component header = Component.translatable("tooltip.village_shop_system.trade_info_header");
-        tradeListOverlay = new TradeListOverlay(entries, header);
-        // Position overlay to the right of the GUI
-        tradeListOverlay.setPosition(leftPos + imageWidth + 4, topPos);
+        List<Component> footerNotes = List.of(
+                Component.translatable("screen.village_shop_system.trade_overlay.food_note"),
+                Component.translatable("screen.village_shop_system.trade_overlay.tool_note")
+        );
+        Component header = Component.translatable("screen.village_shop_system.trade_overlay.header_sell")
+                .withStyle(ChatFormatting.BOLD);
+        tradeListOverlay = new TradeListOverlay(entries, header, footerNotes);
     }
 }
