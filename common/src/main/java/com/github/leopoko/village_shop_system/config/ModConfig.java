@@ -42,7 +42,7 @@ public final class ModConfig {
     public static int maxRestTicks = 200;
     public static boolean pauseCooldownWhileSleeping = true;
     public static boolean villagerEatingEffects = true;
-    public static double shoppingRushChance = 0.05; // 5% chance to trigger shopping rush
+    public static double shoppingRushChance = 0.005; // 5% chance to trigger shopping rush
 
     private ModConfig() {}
 
