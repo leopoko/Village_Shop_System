@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "village_shop_system",
+  "version": "${version}",
+  "name": "Village Shop System",
+  "description": "",
+  "authors": [
+    ""
+  ],
+  "contact": {
+    "homepage": ""
+  },
+  "license": "MIT",
+  "icon": "assets/village_shop_system/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.github.leopoko.village_shop_system.fabric.Village_shop_systemFabric"
+    ],
+    "client": [
+      "com.github.leopoko.village_shop_system.fabric.client.Village_shop_systemFabricClient"
+    ]
+  },
+  "mixins": [
+    "village_shop_system.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "architectury": ">=13.0.8",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
