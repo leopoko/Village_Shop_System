@@ -107,6 +107,16 @@ public class VillagerShopBehavior {
     private boolean needsCleanupOnLoad = false;
 
     /**
+     * Reset cooldown to 0, allowing the villager to shop immediately.
+     * Used by the shopping rush mechanic.
+     */
+    public void resetCooldown() {
+        if (state == State.IDLE && cooldown > 0) {
+            cooldown = 0;
+        }
+    }
+
+    /**
      * Save behavior state to NBT for world persistence.
      */
     public CompoundTag save() {
@@ -653,6 +663,34 @@ public class VillagerShopBehavior {
 
         villager.getNavigation().moveTo(
                 target.getX() + 0.5, target.getY(), target.getZ() + 0.5, 0.5);
+
+        // Shopping rush: chance to reset nearby villagers' cooldowns
+        if (ModConfig.shoppingRushChance > 0 && villager.getRandom().nextDouble() < ModConfig.shoppingRushChance) {
+            triggerShoppingRush(villager, level);
+        }
+    }
+
+    /**
+     * Trigger a shopping rush: reset cooldowns for all nearby idle villagers.
+     */
+    private static void triggerShoppingRush(Villager initiator, ServerLevel level) {
+        int range = ModConfig.villagerSearchRange;
+        AABB area = initiator.getBoundingBox().inflate(range);
+        List<Villager> nearbyVillagers = level.getEntitiesOfClass(Villager.class, area,
+                v -> v != initiator && !v.isBaby() && !v.isSleeping());
+
+        for (Villager v : nearbyVillagers) {
+            if (v instanceof ShopBehaviorAccessor accessor) {
+                accessor.village_shop_system$getShopBehavior().resetCooldown();
+            }
+        }
+
+        // Visual/audio feedback for the rush
+        level.playSound(null, initiator.blockPosition(), SoundEvents.BELL_BLOCK,
+                SoundSource.NEUTRAL, 1.0f, 1.5f);
+        level.sendParticles(ParticleTypes.HAPPY_VILLAGER,
+                initiator.getX(), initiator.getY() + 2.0, initiator.getZ(),
+                10, 2.0, 1.0, 2.0, 0.1);
     }
 
     // --- SHELF INTERACTION ---

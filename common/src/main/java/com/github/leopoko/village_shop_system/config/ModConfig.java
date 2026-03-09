@@ -42,6 +42,7 @@ public final class ModConfig {
     public static int maxRestTicks = 200;
     public static boolean pauseCooldownWhileSleeping = true;
     public static boolean villagerEatingEffects = true;
+    public static double shoppingRushChance = 0.05; // 5% chance to trigger shopping rush
 
     private ModConfig() {}
 
@@ -71,6 +72,7 @@ public final class ModConfig {
         int maxRestTicks = 200;
         boolean pauseCooldownWhileSleeping = true;
         boolean villagerEatingEffects = true;
+        double shoppingRushChance = 0.05;
     }
 
     /**
@@ -119,6 +121,7 @@ public final class ModConfig {
         data.maxRestTicks = maxRestTicks;
         data.pauseCooldownWhileSleeping = pauseCooldownWhileSleeping;
         data.villagerEatingEffects = villagerEatingEffects;
+        data.shoppingRushChance = shoppingRushChance;
 
         try {
             Files.createDirectories(configPath.getParent());
@@ -149,5 +152,6 @@ public final class ModConfig {
         maxRestTicks = data.maxRestTicks;
         pauseCooldownWhileSleeping = data.pauseCooldownWhileSleeping;
         villagerEatingEffects = data.villagerEatingEffects;
+        shoppingRushChance = data.shoppingRushChance;
     }
 }

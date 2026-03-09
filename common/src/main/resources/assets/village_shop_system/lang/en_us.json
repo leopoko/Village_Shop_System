@@ -88,5 +88,7 @@
   "config.village_shop_system.max_rest_ticks": "Max Rest Time",
   "config.village_shop_system.max_rest_ticks.tooltip": "Maximum ticks a villager rests at chair/standing position (default: 200 = 10 sec)",
   "config.village_shop_system.pause_cooldown_while_sleeping": "Pause Cooldown While Sleeping",
-  "config.village_shop_system.pause_cooldown_while_sleeping.tooltip": "When enabled, villager shopping cooldown does not decrease while sleeping. Prevents morning shopping rushes (default: true)"
+  "config.village_shop_system.pause_cooldown_while_sleeping.tooltip": "When enabled, villager shopping cooldown does not decrease while sleeping. Prevents morning shopping rushes (default: true)",
+  "config.village_shop_system.shopping_rush_chance": "Shopping Rush Chance",
+  "config.village_shop_system.shopping_rush_chance.tooltip": "Chance that a villager starting to shop triggers a shopping rush, resetting nearby villagers' cooldowns (0.0 = off, 1.0 = always, default: 0.05 = 5%)"
 }

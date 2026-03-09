@@ -182,6 +182,15 @@ public final class ModConfigScreen {
                 .setSaveConsumer(val -> ModConfig.pauseCooldownWhileSleeping = val)
                 .build());
 
+        behavior.addEntry(entryBuilder.startDoubleField(
+                        Component.translatable("config.village_shop_system.shopping_rush_chance"),
+                        ModConfig.shoppingRushChance)
+                .setDefaultValue(0.05)
+                .setMin(0.0).setMax(1.0)
+                .setTooltip(Component.translatable("config.village_shop_system.shopping_rush_chance.tooltip"))
+                .setSaveConsumer(val -> ModConfig.shoppingRushChance = val)
+                .build());
+
         return builder.build();
     }
 }

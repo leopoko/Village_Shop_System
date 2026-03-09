@@ -88,5 +88,7 @@
   "config.village_shop_system.max_rest_ticks": "最大休憩時間",
   "config.village_shop_system.max_rest_ticks.tooltip": "椅子/立ち位置での最大休憩時間（tick単位、デフォルト: 200 = 10秒）",
   "config.village_shop_system.pause_cooldown_while_sleeping": "睡眠中クールダウン停止",
-  "config.village_shop_system.pause_cooldown_while_sleeping.tooltip": "有効時、村人の睡眠中は買い物クールダウンが進まなくなります。朝の買い物ラッシュを防止します（デフォルト: 有効）"
+  "config.village_shop_system.pause_cooldown_while_sleeping.tooltip": "有効時、村人の睡眠中は買い物クールダウンが進まなくなります。朝の買い物ラッシュを防止します（デフォルト: 有効）",
+  "config.village_shop_system.shopping_rush_chance": "買い物ラッシュ確率",
+  "config.village_shop_system.shopping_rush_chance.tooltip": "村人が買い物を始めた時に買い物ラッシュが発生する確率。周囲の村人のクールダウンがリセットされます（0.0=無効、1.0=常時、デフォルト: 0.05 = 5%）"
 }
