@@ -78,6 +78,10 @@ public class TradeListOverlay {
         int ox = getX(sw);
         int oy = getY(sh, oh);
 
+        // Push z-level above slot items (which render at z=100-200)
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 300);
+
         // Dim background
         g.fill(0, 0, sw, sh, 0x80000000);
 
@@ -163,6 +167,8 @@ public class TradeListOverlay {
             drawBtn(g, font, ">", nextX, cy, NAV_BTN_W, NAV_HEIGHT, nextHov,
                     page < totalPages() - 1);
         }
+
+        g.pose().popPose();
     }
 
     private void drawBtn(GuiGraphics g, Font font, String text, int x, int y,
