@@ -10,6 +10,7 @@ import com.github.leopoko.village_shop_system.shopgroup.ShopGroupManager;
 import com.github.leopoko.village_shop_system.trade.TradePriceCalculator;
 import com.github.leopoko.village_shop_system.trade.TradeRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -544,6 +545,21 @@ public class VillagerShopBehavior {
         // to prevent vanilla AI from making the villager wander away
         if (seatEntity == null) {
             villager.getNavigation().stop();
+        }
+
+        // Eating effects: play particles and sound when holding food
+        if (ModConfig.villagerEatingEffects && !lastPurchasedFood.isEmpty() && restTimer > 0) {
+            if (restTimer % 4 == 0) {
+                level.sendParticles(
+                        new ItemParticleOption(ParticleTypes.ITEM, lastPurchasedFood),
+                        villager.getX(), villager.getY() + villager.getEyeHeight() * 0.8,
+                        villager.getZ(),
+                        3, 0.1, 0.1, 0.1, 0.05);
+            }
+            if (restTimer % 12 == 0) {
+                level.playSound(null, villager.blockPosition(), SoundEvents.GENERIC_EAT,
+                        SoundSource.NEUTRAL, 0.5f, 0.8f + villager.getRandom().nextFloat() * 0.4f);
+            }
         }
 
         if (restTimer <= 0) {

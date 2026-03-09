@@ -41,6 +41,7 @@ public final class ModConfig {
     public static int minRestTicks = 100;
     public static int maxRestTicks = 200;
     public static boolean pauseCooldownWhileSleeping = true;
+    public static boolean villagerEatingEffects = true;
 
     private ModConfig() {}
 
@@ -69,6 +70,7 @@ public final class ModConfig {
         int minRestTicks = 100;
         int maxRestTicks = 200;
         boolean pauseCooldownWhileSleeping = true;
+        boolean villagerEatingEffects = true;
     }
 
     /**
@@ -116,6 +118,7 @@ public final class ModConfig {
         data.minRestTicks = minRestTicks;
         data.maxRestTicks = maxRestTicks;
         data.pauseCooldownWhileSleeping = pauseCooldownWhileSleeping;
+        data.villagerEatingEffects = villagerEatingEffects;
 
         try {
             Files.createDirectories(configPath.getParent());
@@ -145,5 +148,6 @@ public final class ModConfig {
         minRestTicks = data.minRestTicks;
         maxRestTicks = data.maxRestTicks;
         pauseCooldownWhileSleeping = data.pauseCooldownWhileSleeping;
+        villagerEatingEffects = data.villagerEatingEffects;
     }
 }
