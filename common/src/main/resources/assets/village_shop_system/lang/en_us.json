@@ -41,6 +41,11 @@
   "tooltip.village_shop_system.trade_info_food": "§7+ All food items (based on hunger)",
   "tooltip.village_shop_system.trade_info_tools": "§7+ All tools (based on tier)",
   "tooltip.village_shop_system.trade_info_buy_header": "§e§l[Purchasable Items]",
+
+  "screen.village_shop_system.trade_overlay.header_sell": "Tradeable Items",
+  "screen.village_shop_system.trade_overlay.header_buy": "Purchasable Items",
+  "screen.village_shop_system.trade_overlay.food_note": "+ All food items (nutrition-based pricing)",
+  "screen.village_shop_system.trade_overlay.tool_note": "+ All tools (tier-based pricing)",
   "tooltip.village_shop_system.sneak_hint": "§8Sneak+click: Shop Group Settings",
 
   "screen.village_shop_system.shop_group_setting": "Shop Group Settings",

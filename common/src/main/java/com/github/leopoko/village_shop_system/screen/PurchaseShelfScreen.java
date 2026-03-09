@@ -4,14 +4,21 @@ import com.github.leopoko.village_shop_system.menu.PurchaseShelfMenu;
 import com.github.leopoko.village_shop_system.trade.TradePriceCalculator;
 import com.github.leopoko.village_shop_system.trade.TradeRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -80,11 +87,23 @@ public class PurchaseShelfScreen extends AbstractContainerScreen<PurchaseShelfMe
         int iy = topPos + INFO_Y;
         if (mouseX >= ix && mouseX < ix + INFO_W && mouseY >= iy && mouseY < iy + INFO_H) {
             ensureTradeListOverlay();
-            tradeListOverlay.toggle();
+            if (tradeListOverlay != null) {
+                tradeListOverlay.toggle();
+            }
             return true;
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (tradeListOverlay != null && tradeListOverlay.isVisible()) {
+            if (tradeListOverlay.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) {
+                return true;
+            }
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
@@ -133,9 +152,10 @@ public class PurchaseShelfScreen extends AbstractContainerScreen<PurchaseShelfMe
     private void ensureTradeListOverlay() {
         if (tradeListOverlay != null) return;
 
+        Minecraft mc = Minecraft.getInstance();
         if (!TradeRegistry.isInitialized()) {
-            if (net.minecraft.client.Minecraft.getInstance().player != null) {
-                TradeRegistry.initialize(net.minecraft.client.Minecraft.getInstance().player);
+            if (mc.player != null) {
+                TradeRegistry.initialize(mc.player);
             } else {
                 return;
             }
@@ -155,12 +175,41 @@ public class PurchaseShelfScreen extends AbstractContainerScreen<PurchaseShelfMe
             }
         }
 
-        // Sort by item name
+        // Sort regular items by name
         entries.sort(Comparator.comparing(e -> e.name().getString()));
 
-        Component header = Component.translatable("tooltip.village_shop_system.trade_info_buy_header");
-        tradeListOverlay = new TradeListOverlay(entries, header);
-        // Position overlay to the right of the GUI
-        tradeListOverlay.setPosition(leftPos + imageWidth + 4, topPos);
+        // Add enchanted book entries
+        if (mc.player != null) {
+            List<TradeListOverlay.Entry> bookEntries = new ArrayList<>();
+            Registry<Enchantment> enchReg = mc.player.registryAccess()
+                    .registryOrThrow(Registries.ENCHANTMENT);
+            for (Holder.Reference<Enchantment> holder : enchReg.holders().toList()) {
+                int maxLevel = holder.value().getMaxLevel();
+                for (int lvl = 1; lvl <= maxLevel; lvl++) {
+                    ItemStack book = createEnchantedBook(holder, lvl);
+                    int price = TradePriceCalculator.calculateBuyPrice(book, 1);
+                    if (price > 0) {
+                        Component name = Enchantment.getFullname(holder, lvl);
+                        Component priceComp = Component.literal(price + "em")
+                                .withStyle(ChatFormatting.GOLD);
+                        bookEntries.add(new TradeListOverlay.Entry(book, name, priceComp));
+                    }
+                }
+            }
+            bookEntries.sort(Comparator.comparing(e -> e.name().getString()));
+            entries.addAll(bookEntries);
+        }
+
+        Component header = Component.translatable("screen.village_shop_system.trade_overlay.header_buy")
+                .withStyle(ChatFormatting.BOLD);
+        tradeListOverlay = new TradeListOverlay(entries, header, List.of());
+    }
+
+    private static ItemStack createEnchantedBook(Holder<Enchantment> holder, int level) {
+        ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
+        ItemEnchantments.Mutable builder = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+        builder.set(holder, level);
+        book.set(DataComponents.STORED_ENCHANTMENTS, builder.toImmutable());
+        return book;
     }
 }
