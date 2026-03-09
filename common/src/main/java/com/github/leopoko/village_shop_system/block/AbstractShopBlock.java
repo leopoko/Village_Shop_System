@@ -22,8 +22,16 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
+import java.util.function.BiConsumer;
+
 public abstract class AbstractShopBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+
+    /**
+     * Client-side callback to open the shop group settings screen for a block.
+     * Set by Village_shop_systemClient.initCallbacks(). Receives (currentGroupName, blockPos).
+     */
+    public static BiConsumer<String, BlockPos> openBlockGroupScreen;
 
     protected AbstractShopBlock(Properties properties) {
         super(properties);
@@ -47,6 +55,24 @@ public abstract class AbstractShopBlock extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        // Sneak + empty hand on SellingShelfB/Register: open shop group settings directly
+        if (player.isShiftKeyDown()) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof SellingShelfBBlockEntity || be instanceof RegisterBlockEntity) {
+                if (level.isClientSide && openBlockGroupScreen != null) {
+                    String currentGroup = "";
+                    if (be instanceof SellingShelfBBlockEntity shelfB) {
+                        currentGroup = shelfB.getShopGroup();
+                    } else if (be instanceof RegisterBlockEntity register) {
+                        currentGroup = register.getShopGroup();
+                    }
+                    openBlockGroupScreen.accept(currentGroup, pos);
+                }
+                return InteractionResult.sidedSuccess(level.isClientSide);
+            }
+        }
+
+        // Normal interaction: open inventory GUI
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof MenuProvider menuProvider) {

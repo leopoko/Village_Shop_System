@@ -29,35 +29,34 @@ public class PurchaseShelfMenu extends AbstractContainerMenu {
         this.container = container;
         container.startOpen(playerInv.player);
 
-        // Input slots (18 = 3 rows x 6 columns) - emerald input
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 6; col++) {
-                addSlot(new EmeraldOnlySlot(container, col + row * 6, 8 + col * 18, 18 + row * 18));
-            }
-        }
-
-        // Output slots (9 = 3 rows x 3 columns) - purchased items output
+        // Input slots (9 = 3 rows x 3 columns) - emerald input (left side)
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
-                addSlot(new OutputSlot(container, BaseShelfBlockEntity.INPUT_SLOTS + col + row * 3,
-                        126 + col * 18, 18 + row * 18));
+                addSlot(new EmeraldOnlySlot(container, col + row * 3, 8 + col * 18, 18 + row * 18));
             }
         }
 
-        // Config ghost slot - displays the configured purchase item
-        // Positioned between the emerald input area and output area
-        addSlot(new ConfigSlot(container, PurchaseShelfBlockEntity.CONFIG_SLOT, 116, 36));
+        // Output slots (18 = 3 rows x 6 columns) - purchased items output (right side)
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 6; col++) {
+                addSlot(new OutputSlot(container, PurchaseShelfBlockEntity.PURCHASE_INPUT_SLOTS + col + row * 6,
+                        82 + col * 18, 18 + row * 18));
+            }
+        }
 
-        // Player inventory
+        // Config ghost slot - between the emerald input and output areas
+        addSlot(new ConfigSlot(container, PurchaseShelfBlockEntity.CONFIG_SLOT, 63, 36));
+
+        // Player inventory - centered in wider GUI (194px)
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(playerInv, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
+                addSlot(new Slot(playerInv, col + row * 9 + 9, 16 + col * 18, 84 + row * 18));
             }
         }
 
-        // Player hotbar
+        // Player hotbar - centered in wider GUI
         for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(playerInv, col, 8 + col * 18, 142));
+            addSlot(new Slot(playerInv, col, 16 + col * 18, 142));
         }
     }
 
@@ -100,7 +99,7 @@ public class PurchaseShelfMenu extends AbstractContainerMenu {
             } else if (index > containerSlots) {
                 // Move from player inventory to container (only emeralds to input)
                 if (current.is(Items.EMERALD)) {
-                    if (!this.moveItemStackTo(current, 0, BaseShelfBlockEntity.INPUT_SLOTS, false)) {
+                    if (!this.moveItemStackTo(current, 0, PurchaseShelfBlockEntity.PURCHASE_INPUT_SLOTS, false)) {
                         return ItemStack.EMPTY;
                     }
                 } else {

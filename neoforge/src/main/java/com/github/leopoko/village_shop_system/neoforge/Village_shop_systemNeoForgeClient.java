@@ -22,6 +22,7 @@ public final class Village_shop_systemNeoForgeClient {
     @SubscribeEvent
     public static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenuTypes.SELLING_SHELF_MENU.get(), SellingShelfScreen::new);
+        event.register(ModMenuTypes.SELLING_SHELF_B_MENU.get(), SellingShelfScreen::new);
         event.register(ModMenuTypes.PURCHASE_SHELF_MENU.get(), PurchaseShelfScreen::new);
         event.register(ModMenuTypes.REGISTER_MENU.get(), RegisterScreen::new);
     }

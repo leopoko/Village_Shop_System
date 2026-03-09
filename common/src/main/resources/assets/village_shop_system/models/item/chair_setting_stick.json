@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/handheld",
   "textures": {
-    "layer0": "minecraft:item/stick"
+    "layer0": "village_shop_system:item/chair_setting_stick"
   }
 }

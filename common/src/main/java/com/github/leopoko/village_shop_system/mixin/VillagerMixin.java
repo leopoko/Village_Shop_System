@@ -4,6 +4,7 @@ import com.github.leopoko.village_shop_system.villager.ShopBehaviorAccessor;
 import com.github.leopoko.village_shop_system.villager.VillagerShopBehavior;
 import net.minecraft.world.entity.npc.Villager;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -16,12 +17,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Villager.class)
 public abstract class VillagerMixin implements ShopBehaviorAccessor {
 
+    @Shadow
+    protected abstract void updateTrades();
+
     @Unique
     private final VillagerShopBehavior village_shop_system$shopBehavior = new VillagerShopBehavior();
 
     @Override
     public VillagerShopBehavior village_shop_system$getShopBehavior() {
         return village_shop_system$shopBehavior;
+    }
+
+    @Override
+    public void village_shop_system$updateTrades() {
+        this.updateTrades();
     }
 
     @Inject(method = "customServerAiStep", at = @At("TAIL"))

@@ -1,5 +1,6 @@
 package com.github.leopoko.village_shop_system;
 
+import com.github.leopoko.village_shop_system.config.ModConfig;
 import com.github.leopoko.village_shop_system.registry.ModBlockEntities;
 import com.github.leopoko.village_shop_system.registry.ModBlocks;
 import com.github.leopoko.village_shop_system.registry.ModCreativeTabs;
@@ -11,6 +12,7 @@ public final class Village_shop_system {
     public static final String MOD_ID = "village_shop_system";
 
     public static void init() {
+        ModConfig.load();
         ModBlocks.register();
         ModItems.register();
         ModBlockEntities.register();

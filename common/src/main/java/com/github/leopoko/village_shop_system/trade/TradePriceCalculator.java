@@ -37,30 +37,42 @@ public final class TradePriceCalculator {
 
         Item item = stack.getItem();
         int count = stack.getCount();
+        int penalty = ModConfig.sellingEmeraldPenalty;
 
         // Check vanilla trades first
         int vanillaTrade = TradeRegistry.getSellTrade(item);
         if (vanillaTrade != -1) {
             int emeralds = TradeRegistry.decodeEmeralds(vanillaTrade);
             int tradeItemCount = TradeRegistry.decodeItemCount(vanillaTrade);
-            // Calculate emeralds for the given count
-            int baseEmeralds = (emeralds * count) / tradeItemCount;
-            // Apply penalty
-            int penalty = ModConfig.sellingEmeraldPenalty;
-            return Math.max(0, baseEmeralds - penalty);
+            // Apply penalty per trade unit, not to the total
+            int adjustedEmeralds = emeralds - penalty;
+            if (adjustedEmeralds > 0) {
+                return (adjustedEmeralds * count) / tradeItemCount;
+            } else if (emeralds > 0) {
+                // Penalty exceeds emeralds per trade → need more items per emerald
+                int newItemCount = (int) Math.ceil((double) tradeItemCount / emeralds * (emeralds + penalty));
+                newItemCount = Math.min(newItemCount, 64);
+                if (newItemCount <= 0) return 0;
+                return count / newItemCount;
+            }
+            return 0;
         }
 
-        // Try food pricing
-        int foodPrice = calculateFoodPrice(stack);
-        if (foodPrice > 0) {
-            int penalty = ModConfig.sellingEmeraldPenalty;
-            return Math.max(0, foodPrice - penalty);
+        // Try food pricing (penalty per item)
+        int foodPricePerItem = calculateFoodPricePerItem(item);
+        if (foodPricePerItem > 0) {
+            int adjusted = foodPricePerItem - penalty;
+            if (adjusted > 0) {
+                return adjusted * count;
+            } else {
+                // Need 2 items per emerald with penalty
+                return count / 2;
+            }
         }
 
-        // Try tool pricing
+        // Try tool pricing (tools don't stack, penalty on single item is correct)
         int toolPrice = calculateToolPrice(stack);
         if (toolPrice > 0) {
-            int penalty = ModConfig.sellingEmeraldPenalty;
             return Math.max(0, toolPrice - penalty);
         }
 

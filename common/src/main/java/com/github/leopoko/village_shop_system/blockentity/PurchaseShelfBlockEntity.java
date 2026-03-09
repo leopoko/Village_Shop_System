@@ -23,6 +23,10 @@ import org.jetbrains.annotations.Nullable;
  * Output: purchased items (bottom via hopper)
  */
 public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
+    /** Purchase shelf uses 9 emerald input slots (3x3) and 18 item output slots (3x6) */
+    public static final int PURCHASE_INPUT_SLOTS = 9;
+    public static final int PURCHASE_OUTPUT_SLOTS = 18;
+
     /** Extra slot index for the configured item display */
     public static final int CONFIG_SLOT = TOTAL_SLOTS;
     public static final int PURCHASE_TOTAL_SLOTS = TOTAL_SLOTS + 1;
@@ -118,7 +122,7 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
      */
     private int countEmeraldsInInput() {
         int total = 0;
-        for (int i = 0; i < INPUT_SLOTS; i++) {
+        for (int i = 0; i < PURCHASE_INPUT_SLOTS; i++) {
             ItemStack stack = items.get(i);
             if (stack.is(Items.EMERALD)) {
                 total += stack.getCount();
@@ -133,7 +137,7 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
      */
     private int consumeEmeralds(int count) {
         int remaining = count;
-        for (int i = 0; i < INPUT_SLOTS && remaining > 0; i++) {
+        for (int i = 0; i < PURCHASE_INPUT_SLOTS && remaining > 0; i++) {
             ItemStack stack = items.get(i);
             if (stack.is(Items.EMERALD)) {
                 int take = Math.min(remaining, stack.getCount());
@@ -151,7 +155,7 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
      * Check if an item can be inserted into output slots.
      */
     private boolean canInsertItem(ItemStack item) {
-        for (int i = INPUT_SLOTS; i < TOTAL_SLOTS; i++) {
+        for (int i = PURCHASE_INPUT_SLOTS; i < TOTAL_SLOTS; i++) {
             ItemStack existing = items.get(i);
             if (existing.isEmpty()) return true;
             if (ItemStack.isSameItemSameComponents(existing, item) && existing.getCount() < existing.getMaxStackSize()) {
@@ -166,7 +170,7 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
      */
     private void insertOutputItem(ItemStack item) {
         // Try to merge with existing stacks first
-        for (int i = INPUT_SLOTS; i < TOTAL_SLOTS; i++) {
+        for (int i = PURCHASE_INPUT_SLOTS; i < TOTAL_SLOTS; i++) {
             ItemStack existing = items.get(i);
             if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(existing, item)) {
                 int space = existing.getMaxStackSize() - existing.getCount();
@@ -179,7 +183,7 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
             }
         }
         // Place in empty slot
-        for (int i = INPUT_SLOTS; i < TOTAL_SLOTS; i++) {
+        for (int i = PURCHASE_INPUT_SLOTS; i < TOTAL_SLOTS; i++) {
             if (items.get(i).isEmpty()) {
                 items.set(i, item);
                 return;
@@ -200,21 +204,27 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        if (side == Direction.DOWN) return getOutputSlots();
-        return getInputSlots();
+        if (side == Direction.DOWN) {
+            int[] slots = new int[PURCHASE_OUTPUT_SLOTS];
+            for (int i = 0; i < PURCHASE_OUTPUT_SLOTS; i++) slots[i] = PURCHASE_INPUT_SLOTS + i;
+            return slots;
+        }
+        int[] slots = new int[PURCHASE_INPUT_SLOTS];
+        for (int i = 0; i < PURCHASE_INPUT_SLOTS; i++) slots[i] = i;
+        return slots;
     }
 
     @Override
     public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
         // Only allow emeralds into input slots from top/sides
         if (direction == Direction.DOWN) return false;
-        return index < INPUT_SLOTS && stack.is(Items.EMERALD);
+        return index < PURCHASE_INPUT_SLOTS && stack.is(Items.EMERALD);
     }
 
     @Override
     public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
         // Only allow taking purchased items from output slots via bottom
-        return direction == Direction.DOWN && index >= INPUT_SLOTS;
+        return direction == Direction.DOWN && index >= PURCHASE_INPUT_SLOTS;
     }
 
     // --- MenuProvider ---

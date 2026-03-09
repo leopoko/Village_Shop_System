@@ -19,6 +19,9 @@
     ],
     "client": [
       "com.github.leopoko.village_shop_system.fabric.client.Village_shop_systemFabricClient"
+    ],
+    "modmenu": [
+      "com.github.leopoko.village_shop_system.fabric.ModMenuIntegration"
     ]
   },
   "mixins": [
@@ -29,9 +32,10 @@
     "minecraft": "~1.21.1",
     "java": ">=21",
     "architectury": ">=13.0.8",
-    "fabric-api": "*"
+    "fabric-api": "*",
+    "cloth-config": ">=15.0.0"
   },
   "suggests": {
-    "another-mod": "*"
+    "modmenu": "*"
   }
 }

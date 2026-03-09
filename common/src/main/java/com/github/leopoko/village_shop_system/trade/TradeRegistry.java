@@ -19,6 +19,10 @@ import java.util.*;
  * Buy prices: how many emeralds a villager charges for items (emerald → item)
  *
  * Prices are stored as encoded ints: (emeralds << 16) | itemCount
+ *
+ * Uses a two-pass approach:
+ * 1. Hardcoded vanilla trade table (guaranteed to be correct)
+ * 2. Dynamic scan of VillagerTrades.TRADES as supplement
  */
 public final class TradeRegistry {
     /** item → encoded trade (emeralds, itemCount) for selling items to villagers */
@@ -30,13 +34,16 @@ public final class TradeRegistry {
     private TradeRegistry() {}
 
     /**
-     * Initialize by scanning vanilla trades. Must be called with a valid entity
-     * (used by trade listing factories to create offers).
+     * Initialize by loading hardcoded trades and scanning vanilla trades.
+     * Must be called with a valid entity (used by trade listing factories to create offers).
      * Safe to call multiple times; only runs once.
      */
     public static void initialize(Entity entity) {
         if (initialized) return;
         initialized = true;
+        // First pass: hardcoded known vanilla trades (reliable)
+        registerKnownVanillaTrades();
+        // Second pass: dynamic scan (catches anything we missed)
         scanVanillaTrades(entity);
     }
 
@@ -95,7 +102,215 @@ public final class TradeRegistry {
         return encoded & 0xFFFF;
     }
 
-    // --- Internal scanning ---
+    // --- Hardcoded vanilla trades ---
+
+    /**
+     * Register all known vanilla villager trades as a reliable baseline.
+     * This ensures trades work even when dynamic scanning fails.
+     */
+    private static void registerKnownVanillaTrades() {
+        // ===== FARMER =====
+        addSellPrice(Items.WHEAT, 1, 20);
+        addSellPrice(Items.POTATO, 1, 26);
+        addSellPrice(Items.CARROT, 1, 22);
+        addSellPrice(Items.BEETROOT, 1, 15);
+        addSellPrice(Items.PUMPKIN, 1, 6);
+        addSellPrice(Items.MELON, 1, 4);
+        addBuyPrice(Items.BREAD, 1, 6);
+        addBuyPrice(Items.PUMPKIN_PIE, 1, 4);
+        addBuyPrice(Items.APPLE, 1, 4);
+        addBuyPrice(Items.COOKIE, 3, 18);
+        addBuyPrice(Items.CAKE, 1, 1);
+        addBuyPrice(Items.GOLDEN_CARROT, 3, 3);
+        addBuyPrice(Items.GLISTERING_MELON_SLICE, 3, 3);
+
+        // ===== FISHERMAN =====
+        addSellPrice(Items.STRING, 1, 20);
+        addSellPrice(Items.COAL, 1, 10);
+        addSellPrice(Items.COD, 1, 15);
+        addSellPrice(Items.SALMON, 1, 13);
+        addSellPrice(Items.TROPICAL_FISH, 1, 6);
+        addSellPrice(Items.PUFFERFISH, 1, 4);
+        addBuyPrice(Items.COD_BUCKET, 3, 1);
+        addBuyPrice(Items.COOKED_COD, 1, 6);
+        addBuyPrice(Items.COOKED_SALMON, 1, 6);
+        addBuyPrice(Items.CAMPFIRE, 2, 1);
+
+        // ===== SHEPHERD =====
+        addSellPrice(Items.WHITE_WOOL, 1, 18);
+        addSellPrice(Items.BROWN_WOOL, 1, 18);
+        addSellPrice(Items.BLACK_WOOL, 1, 18);
+        addSellPrice(Items.GRAY_WOOL, 1, 18);
+        addSellPrice(Items.WHITE_DYE, 1, 12);
+        addSellPrice(Items.BLACK_DYE, 1, 12);
+        addSellPrice(Items.BROWN_DYE, 1, 12);
+        addSellPrice(Items.GRAY_DYE, 1, 12);
+        addSellPrice(Items.LIGHT_GRAY_DYE, 1, 12);
+        addSellPrice(Items.LIME_DYE, 1, 12);
+        addSellPrice(Items.GREEN_DYE, 1, 12);
+        addSellPrice(Items.RED_DYE, 1, 12);
+        addSellPrice(Items.BLUE_DYE, 1, 12);
+        addSellPrice(Items.YELLOW_DYE, 1, 12);
+        addSellPrice(Items.ORANGE_DYE, 1, 12);
+        addSellPrice(Items.PINK_DYE, 1, 12);
+        addSellPrice(Items.PURPLE_DYE, 1, 12);
+        addSellPrice(Items.CYAN_DYE, 1, 12);
+        addSellPrice(Items.LIGHT_BLUE_DYE, 1, 12);
+        addSellPrice(Items.MAGENTA_DYE, 1, 12);
+        addBuyPrice(Items.SHEARS, 2, 1);
+
+        // ===== BUTCHER =====
+        addSellPrice(Items.CHICKEN, 1, 14);
+        addSellPrice(Items.PORKCHOP, 1, 7);
+        addSellPrice(Items.RABBIT, 1, 4);
+        addSellPrice(Items.MUTTON, 1, 7);
+        addSellPrice(Items.BEEF, 1, 10);
+        addSellPrice(Items.DRIED_KELP_BLOCK, 1, 10);
+        addSellPrice(Items.SWEET_BERRIES, 1, 10);
+        addBuyPrice(Items.RABBIT_STEW, 1, 1);
+        addBuyPrice(Items.COOKED_PORKCHOP, 1, 5);
+        addBuyPrice(Items.COOKED_CHICKEN, 1, 8);
+
+        // ===== LIBRARIAN =====
+        addSellPrice(Items.PAPER, 1, 24);
+        addSellPrice(Items.BOOK, 1, 4);
+        addSellPrice(Items.INK_SAC, 1, 5);
+        addBuyPrice(Items.BOOKSHELF, 9, 1);
+        addBuyPrice(Items.LANTERN, 1, 1);
+        addBuyPrice(Items.GLASS, 1, 4);
+        addBuyPrice(Items.WRITABLE_BOOK, 1, 1);
+        addBuyPrice(Items.CLOCK, 5, 1);
+        addBuyPrice(Items.COMPASS, 4, 1);
+        addBuyPrice(Items.NAME_TAG, 20, 1);
+
+        // ===== CARTOGRAPHER =====
+        addSellPrice(Items.GLASS_PANE, 1, 11);
+        addSellPrice(Items.COMPASS, 1, 1);
+        addBuyPrice(Items.MAP, 7, 1);
+        addBuyPrice(Items.ITEM_FRAME, 7, 1);
+
+        // ===== CLERIC =====
+        addSellPrice(Items.ROTTEN_FLESH, 1, 32);
+        addSellPrice(Items.GOLD_INGOT, 1, 3);
+        addSellPrice(Items.RABBIT_FOOT, 1, 2);
+        addSellPrice(Items.TURTLE_SCUTE, 1, 4);
+        addSellPrice(Items.GLASS_BOTTLE, 1, 9);
+        addSellPrice(Items.NETHER_WART, 1, 22);
+        addBuyPrice(Items.REDSTONE, 1, 2);
+        addBuyPrice(Items.LAPIS_LAZULI, 1, 1);
+        addBuyPrice(Items.GLOWSTONE, 4, 1);
+        addBuyPrice(Items.ENDER_PEARL, 5, 1);
+        addBuyPrice(Items.EXPERIENCE_BOTTLE, 3, 1);
+
+        // ===== ARMORER =====
+        addSellPrice(Items.IRON_INGOT, 1, 4);
+        addSellPrice(Items.DIAMOND, 1, 1);
+        addBuyPrice(Items.IRON_HELMET, 5, 1);
+        addBuyPrice(Items.IRON_CHESTPLATE, 9, 1);
+        addBuyPrice(Items.IRON_LEGGINGS, 7, 1);
+        addBuyPrice(Items.IRON_BOOTS, 4, 1);
+        addBuyPrice(Items.BELL, 36, 1);
+        addBuyPrice(Items.CHAINMAIL_HELMET, 1, 1);
+        addBuyPrice(Items.CHAINMAIL_CHESTPLATE, 4, 1);
+        addBuyPrice(Items.CHAINMAIL_LEGGINGS, 3, 1);
+        addBuyPrice(Items.CHAINMAIL_BOOTS, 1, 1);
+        addBuyPrice(Items.SHIELD, 5, 1);
+        addBuyPrice(Items.DIAMOND_HELMET, 27, 1);
+        addBuyPrice(Items.DIAMOND_CHESTPLATE, 35, 1);
+        addBuyPrice(Items.DIAMOND_LEGGINGS, 31, 1);
+        addBuyPrice(Items.DIAMOND_BOOTS, 27, 1);
+
+        // ===== WEAPONSMITH =====
+        addSellPrice(Items.FLINT, 1, 24);
+        addBuyPrice(Items.IRON_AXE, 3, 1);
+        addBuyPrice(Items.IRON_SWORD, 2, 1);
+        addBuyPrice(Items.DIAMOND_AXE, 12, 1);
+        addBuyPrice(Items.DIAMOND_SWORD, 8, 1);
+
+        // ===== TOOLSMITH =====
+        addBuyPrice(Items.STONE_AXE, 1, 1);
+        addBuyPrice(Items.STONE_SHOVEL, 1, 1);
+        addBuyPrice(Items.STONE_PICKAXE, 1, 1);
+        addBuyPrice(Items.STONE_HOE, 1, 1);
+        addBuyPrice(Items.IRON_SHOVEL, 2, 1);
+        addBuyPrice(Items.IRON_PICKAXE, 3, 1);
+        addBuyPrice(Items.DIAMOND_SHOVEL, 5, 1);
+        addBuyPrice(Items.DIAMOND_PICKAXE, 13, 1);
+        addBuyPrice(Items.DIAMOND_HOE, 4, 1);
+
+        // ===== MASON =====
+        addSellPrice(Items.CLAY_BALL, 1, 10);
+        addSellPrice(Items.STONE, 1, 20);
+        addSellPrice(Items.GRANITE, 1, 16);
+        addSellPrice(Items.ANDESITE, 1, 16);
+        addSellPrice(Items.DIORITE, 1, 16);
+        addSellPrice(Items.NETHER_QUARTZ_ORE, 1, 12);
+        addBuyPrice(Items.BRICK, 1, 10);
+        addBuyPrice(Items.CHISELED_STONE_BRICKS, 1, 4);
+        addBuyPrice(Items.POLISHED_ANDESITE, 1, 4);
+        addBuyPrice(Items.POLISHED_DIORITE, 1, 4);
+        addBuyPrice(Items.POLISHED_GRANITE, 1, 4);
+        addBuyPrice(Items.DRIPSTONE_BLOCK, 1, 4);
+        addBuyPrice(Items.QUARTZ_BLOCK, 1, 1);
+        addBuyPrice(Items.QUARTZ_PILLAR, 1, 1);
+
+        // ===== LEATHERWORKER =====
+        addSellPrice(Items.LEATHER, 1, 6);
+        addSellPrice(Items.RABBIT_HIDE, 1, 9);
+        addBuyPrice(Items.LEATHER_HELMET, 5, 1);
+        addBuyPrice(Items.LEATHER_CHESTPLATE, 7, 1);
+        addBuyPrice(Items.LEATHER_LEGGINGS, 3, 1);
+        addBuyPrice(Items.LEATHER_BOOTS, 4, 1);
+        addBuyPrice(Items.LEATHER_HORSE_ARMOR, 6, 1);
+        addBuyPrice(Items.SADDLE, 6, 1);
+
+        // ===== FLETCHER =====
+        addSellPrice(Items.STICK, 1, 32);
+        addSellPrice(Items.FEATHER, 1, 24);
+        addSellPrice(Items.TRIPWIRE_HOOK, 1, 8);
+        addBuyPrice(Items.ARROW, 1, 16);
+        addBuyPrice(Items.BOW, 2, 1);
+        addBuyPrice(Items.CROSSBOW, 3, 1);
+
+        // ===== WANDERING TRADER =====
+        addBuyPrice(Items.SEA_PICKLE, 2, 1);
+        addBuyPrice(Items.SLIME_BALL, 4, 1);
+        addBuyPrice(Items.NAUTILUS_SHELL, 5, 1);
+        addBuyPrice(Items.FERN, 1, 1);
+        addBuyPrice(Items.SUGAR_CANE, 1, 1);
+        addBuyPrice(Items.KELP, 3, 1);
+        addBuyPrice(Items.CACTUS, 3, 1);
+        addBuyPrice(Items.VINE, 1, 1);
+        addBuyPrice(Items.BROWN_MUSHROOM, 1, 1);
+        addBuyPrice(Items.RED_MUSHROOM, 1, 1);
+        addBuyPrice(Items.LILY_PAD, 1, 1);
+        addBuyPrice(Items.SAND, 1, 8);
+        addBuyPrice(Items.RED_SAND, 1, 4);
+        addBuyPrice(Items.POINTED_DRIPSTONE, 2, 1);
+        addBuyPrice(Items.ROOTED_DIRT, 1, 2);
+        addBuyPrice(Items.MOSS_BLOCK, 1, 2);
+        addBuyPrice(Items.PODZOL, 3, 3);
+        addBuyPrice(Items.PACKED_ICE, 3, 1);
+        addBuyPrice(Items.GUNPOWDER, 1, 1);
+    }
+
+    private static void addSellPrice(Item item, int emeralds, int itemCount) {
+        int newEncoded = encodeTrade(emeralds, itemCount);
+        int current = SELL_PRICES.getOrDefault(item, -1);
+        if (current == -1 || compareRatio(newEncoded, current) > 0) {
+            SELL_PRICES.put(item, newEncoded);
+        }
+    }
+
+    private static void addBuyPrice(Item item, int emeralds, int itemCount) {
+        int newEncoded = encodeTrade(emeralds, itemCount);
+        int current = BUY_PRICES.getOrDefault(item, -1);
+        if (current == -1 || compareRatio(newEncoded, current) < 0) {
+            BUY_PRICES.put(item, newEncoded);
+        }
+    }
+
+    // --- Dynamic scanning ---
 
     private static void scanVanillaTrades(Entity entity) {
         for (Map.Entry<VillagerProfession, Int2ObjectMap<VillagerTrades.ItemListing[]>> entry
@@ -121,7 +336,8 @@ public final class TradeRegistry {
                     processOffer(offer);
                 }
             } catch (Exception ignored) {
-                // Some listings may fail without proper world context
+                // Some listings may fail without proper world context (maps, etc.)
+                // These are covered by the hardcoded table above
             }
         }
     }
@@ -132,33 +348,13 @@ public final class TradeRegistry {
         ItemStack result = offer.getResult();
 
         // Pattern 1: Villager buys items from player → gives emeralds
-        // costA = items (not emeralds), result = emeralds
         if (result.is(Items.EMERALD) && !costA.is(Items.EMERALD)) {
-            Item item = costA.getItem();
-            int emeralds = result.getCount();
-            int itemCount = costA.getCount();
-            int newEncoded = encodeTrade(emeralds, itemCount);
-
-            // Keep the best ratio (highest emeralds per item)
-            int current = SELL_PRICES.getOrDefault(item, -1);
-            if (current == -1 || compareRatio(newEncoded, current) > 0) {
-                SELL_PRICES.put(item, newEncoded);
-            }
+            addSellPrice(costA.getItem(), result.getCount(), costA.getCount());
         }
 
         // Pattern 2: Villager sells items to player for emeralds
-        // costA = emeralds, result = items (not emeralds), no secondary cost
         if (costA.is(Items.EMERALD) && !result.is(Items.EMERALD) && costB.isEmpty()) {
-            Item item = result.getItem();
-            int emeralds = costA.getCount();
-            int itemCount = result.getCount();
-            int newEncoded = encodeTrade(emeralds, itemCount);
-
-            // Keep the cheapest price (lowest emeralds per item)
-            int current = BUY_PRICES.getOrDefault(item, -1);
-            if (current == -1 || compareRatio(newEncoded, current) < 0) {
-                BUY_PRICES.put(item, newEncoded);
-            }
+            addBuyPrice(result.getItem(), costA.getCount(), result.getCount());
         }
     }
 

@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -47,20 +48,33 @@ public class SellingShelfBBlockEntity extends BaseShelfBlockEntity {
     // --- Trade execution (called by villager AI) ---
 
     /**
-     * Process trades and forward emeralds to registers in the shop group.
-     * If no group or no registers available, emeralds go to local output slots.
-     *
+     * Process trades with unlimited budget.
      * @return the number of emeralds generated
      */
     public int processTrades() {
-        int totalEmeralds = 0;
+        return processTrades(Integer.MAX_VALUE);
+    }
 
-        for (int i = 0; i < INPUT_SLOTS; i++) {
+    /**
+     * Process trades with a budget limit and forward emeralds to registers in the shop group.
+     * If no group or no registers available, emeralds go to local output slots.
+     *
+     * @param budget maximum emeralds to generate in this trade session
+     * @return the number of emeralds generated
+     */
+    public int processTrades(int budget) {
+        int totalEmeralds = 0;
+        int budgetRemaining = budget;
+
+        for (int i = 0; i < INPUT_SLOTS && budgetRemaining > 0; i++) {
             ItemStack stack = items.get(i);
             if (stack.isEmpty()) continue;
 
             int emeralds = TradePriceCalculator.calculateSellPrice(stack);
             if (emeralds <= 0) continue;
+
+            // Cap by budget
+            emeralds = Math.min(emeralds, budgetRemaining);
 
             // Try to send emeralds to registers first, fall back to local output
             int inserted;
@@ -89,6 +103,7 @@ public class SellingShelfBBlockEntity extends BaseShelfBlockEntity {
                         items.set(i, ItemStack.EMPTY);
                     }
                     totalEmeralds += inserted;
+                    budgetRemaining -= inserted;
                 }
             }
         }
@@ -145,6 +160,44 @@ public class SellingShelfBBlockEntity extends BaseShelfBlockEntity {
             }
         }
         return count - remaining;
+    }
+
+    /**
+     * Flush any emeralds sitting in local output slots to registers in the shop group.
+     * Called by VillagerShopBehavior when auto-paying or when the villager arrives at the register.
+     */
+    public void flushLocalEmeraldsToRegisters() {
+        if (shopGroup.isEmpty() || !(level instanceof ServerLevel serverLevel)) return;
+
+        int totalLocalEmeralds = 0;
+        for (int i = INPUT_SLOTS; i < TOTAL_SLOTS; i++) {
+            ItemStack stack = items.get(i);
+            if (!stack.isEmpty() && stack.is(Items.EMERALD)) {
+                totalLocalEmeralds += stack.getCount();
+            }
+        }
+
+        if (totalLocalEmeralds <= 0) return;
+
+        int sent = sendEmeraldsToRegisters(serverLevel, totalLocalEmeralds);
+        if (sent <= 0) return;
+
+        // Remove the sent emeralds from local output slots
+        int toRemove = sent;
+        for (int i = INPUT_SLOTS; i < TOTAL_SLOTS && toRemove > 0; i++) {
+            ItemStack stack = items.get(i);
+            if (!stack.isEmpty() && stack.is(Items.EMERALD)) {
+                int remove = Math.min(toRemove, stack.getCount());
+                stack.shrink(remove);
+                if (stack.isEmpty()) {
+                    items.set(i, ItemStack.EMPTY);
+                }
+                toRemove -= remove;
+            }
+        }
+
+        setChanged();
+        syncToClient();
     }
 
     public boolean hasTradeableItems() {
@@ -216,7 +269,12 @@ public class SellingShelfBBlockEntity extends BaseShelfBlockEntity {
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int syncId, Inventory playerInv, Player player) {
-        return new SellingShelfMenu(syncId, playerInv, this);
+        SimpleContainerData data = new SimpleContainerData(4);
+        data.set(0, worldPosition.getX());
+        data.set(1, worldPosition.getY());
+        data.set(2, worldPosition.getZ());
+        data.set(3, 1); // valid flag
+        return new SellingShelfMenu(syncId, playerInv, this, data);
     }
 
     // --- NBT ---

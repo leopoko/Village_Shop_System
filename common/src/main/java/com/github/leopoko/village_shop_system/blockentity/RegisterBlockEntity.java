@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
@@ -86,7 +87,12 @@ public class RegisterBlockEntity extends BaseShelfBlockEntity {
 
     @Override
     public int[] getSlotsForFace(Direction side) {
-        if (side == Direction.DOWN) return getOutputSlots();
+        if (side == Direction.DOWN) {
+            // All register slots are accessible from the bottom for hopper extraction
+            int[] allSlots = new int[TOTAL_SLOTS];
+            for (int i = 0; i < TOTAL_SLOTS; i++) allSlots[i] = i;
+            return allSlots;
+        }
         return new int[0]; // No hopper input for register
     }
 
@@ -116,7 +122,12 @@ public class RegisterBlockEntity extends BaseShelfBlockEntity {
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int syncId, Inventory playerInv, Player player) {
-        return new RegisterMenu(syncId, playerInv, (Container) this);
+        SimpleContainerData data = new SimpleContainerData(4);
+        data.set(0, worldPosition.getX());
+        data.set(1, worldPosition.getY());
+        data.set(2, worldPosition.getZ());
+        data.set(3, 1); // valid flag
+        return new RegisterMenu(syncId, playerInv, (Container) this, data);
     }
 
     // --- NBT ---

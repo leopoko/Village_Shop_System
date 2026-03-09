@@ -17,6 +17,9 @@ public final class ModMenuTypes {
     public static final RegistrySupplier<MenuType<SellingShelfMenu>> SELLING_SHELF_MENU =
             MENUS.register("selling_shelf", () -> new MenuType<>(SellingShelfMenu::new, FeatureFlags.VANILLA_SET));
 
+    public static final RegistrySupplier<MenuType<SellingShelfMenu>> SELLING_SHELF_B_MENU =
+            MENUS.register("selling_shelf_b", () -> new MenuType<>(SellingShelfMenu::createForShelfB, FeatureFlags.VANILLA_SET));
+
     public static final RegistrySupplier<MenuType<PurchaseShelfMenu>> PURCHASE_SHELF_MENU =
             MENUS.register("purchase_shelf", () -> new MenuType<>(PurchaseShelfMenu::new, FeatureFlags.VANILLA_SET));
 

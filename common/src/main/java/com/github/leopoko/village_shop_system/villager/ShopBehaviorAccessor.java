@@ -6,4 +6,9 @@ package com.github.leopoko.village_shop_system.villager;
  */
 public interface ShopBehaviorAccessor {
     VillagerShopBehavior village_shop_system$getShopBehavior();
+
+    /**
+     * Expose the protected updateTrades() method for level-up trade refresh.
+     */
+    void village_shop_system$updateTrades();
 }

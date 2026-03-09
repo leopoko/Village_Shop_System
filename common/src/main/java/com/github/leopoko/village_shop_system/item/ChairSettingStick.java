@@ -2,21 +2,24 @@ package com.github.leopoko.village_shop_system.item;
 
 import com.github.leopoko.village_shop_system.blockentity.RegisterBlockEntity;
 import com.github.leopoko.village_shop_system.blockentity.SellingShelfBBlockEntity;
+import com.github.leopoko.village_shop_system.shopgroup.ShopGroup;
 import com.github.leopoko.village_shop_system.shopgroup.ShopGroupManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.function.Consumer;
 
@@ -40,7 +43,8 @@ public class ChairSettingStick extends Item {
     public enum Mode {
         SHOP_GROUP("item.village_shop_system.chair_setting_stick.mode.shop_group"),
         CHAIR("item.village_shop_system.chair_setting_stick.mode.chair"),
-        STANDING_POSITION("item.village_shop_system.chair_setting_stick.mode.standing_position");
+        STANDING_POSITION("item.village_shop_system.chair_setting_stick.mode.standing_position"),
+        DELETE("item.village_shop_system.chair_setting_stick.mode.delete");
 
         private final String translationKey;
 
@@ -113,14 +117,11 @@ public class ChairSettingStick extends Item {
         ItemStack stack = context.getItemInHand();
         Mode mode = getMode(stack);
 
-        // Shift+right click on block: cycle mode
+        // Shift+right click on block: cycle mode (display handled by inventoryTick)
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide) {
                 Mode newMode = mode.next();
                 setMode(stack, newMode);
-                player.displayClientMessage(
-                        Component.translatable("item.village_shop_system.chair_setting_stick.mode_changed",
-                                newMode.getDisplayName()), true);
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
@@ -178,18 +179,11 @@ public class ChairSettingStick extends Item {
                             Component.translatable("item.village_shop_system.chair_setting_stick.no_group"), true);
                     return InteractionResult.FAIL;
                 }
-                BlockState state = level.getBlockState(pos);
-                if (state.getBlock() instanceof StairBlock) {
-                    ShopGroupManager.get(serverLevel).addChair(shopGroup, pos);
-                    player.displayClientMessage(
-                            Component.translatable("item.village_shop_system.chair_setting_stick.chair_set",
-                                    shopGroup), true);
-                    return InteractionResult.SUCCESS;
-                } else {
-                    player.displayClientMessage(
-                            Component.translatable("item.village_shop_system.chair_setting_stick.not_stairs"), true);
-                    return InteractionResult.FAIL;
-                }
+                ShopGroupManager.get(serverLevel).addChair(shopGroup, pos);
+                player.displayClientMessage(
+                        Component.translatable("item.village_shop_system.chair_setting_stick.chair_set",
+                                shopGroup), true);
+                return InteractionResult.SUCCESS;
             }
             case STANDING_POSITION -> {
                 if (shopGroup.isEmpty()) {
@@ -203,8 +197,110 @@ public class ChairSettingStick extends Item {
                                 shopGroup), true);
                 return InteractionResult.SUCCESS;
             }
+            case DELETE -> {
+                if (shopGroup.isEmpty()) {
+                    player.displayClientMessage(
+                            Component.translatable("item.village_shop_system.chair_setting_stick.no_group"), true);
+                    return InteractionResult.FAIL;
+                }
+                ShopGroupManager manager = ShopGroupManager.get(serverLevel);
+                ShopGroup group = manager.getGroup(shopGroup);
+                if (group == null) {
+                    player.displayClientMessage(
+                            Component.translatable("item.village_shop_system.chair_setting_stick.nothing_to_delete"), true);
+                    return InteractionResult.FAIL;
+                }
+                // Try to remove chair at this position
+                if (group.getChairPositions().contains(pos)) {
+                    manager.removeChair(shopGroup, pos);
+                    player.displayClientMessage(
+                            Component.translatable("item.village_shop_system.chair_setting_stick.chair_removed",
+                                    shopGroup), true);
+                    return InteractionResult.SUCCESS;
+                }
+                // Try to remove standing position above this block
+                BlockPos abovePos = pos.above();
+                if (group.getStandingPositions().contains(abovePos)) {
+                    manager.removeStandingPosition(shopGroup, abovePos);
+                    player.displayClientMessage(
+                            Component.translatable("item.village_shop_system.chair_setting_stick.position_removed",
+                                    shopGroup), true);
+                    return InteractionResult.SUCCESS;
+                }
+                player.displayClientMessage(
+                        Component.translatable("item.village_shop_system.chair_setting_stick.nothing_to_delete"), true);
+                return InteractionResult.FAIL;
+            }
         }
         return InteractionResult.PASS;
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
+        if (level.isClientSide) return;
+        if (!(entity instanceof ServerPlayer player)) return;
+
+        // Only show info/particles when held in main hand or offhand
+        boolean isHeld = isSelected || player.getOffhandItem() == stack;
+        if (!isHeld) return;
+
+        long gameTime = level.getGameTime();
+
+        // Show current mode in action bar every 20 ticks
+        if (gameTime % 20 == 0) {
+            Mode mode = getMode(stack);
+            String shopGroup = getShopGroup(stack);
+            // Build component with proper style propagation (§ codes don't propagate to child components)
+            Component modeInfo = Component.translatable(
+                    "item.village_shop_system.chair_setting_stick.holding_info",
+                    mode.getDisplayName()).withStyle(ChatFormatting.YELLOW);
+            if (shopGroup.isEmpty()) {
+                player.displayClientMessage(modeInfo, true);
+            } else {
+                Component groupInfo = Component.translatable(
+                        "item.village_shop_system.chair_setting_stick.holding_info_group_label",
+                        shopGroup).withStyle(ChatFormatting.GRAY);
+                player.displayClientMessage(
+                        Component.empty().append(modeInfo).append(Component.literal(" ")).append(groupInfo),
+                        true);
+            }
+        }
+
+        // Show particles every 10 ticks
+        if (gameTime % 10 != 0) return;
+
+        String shopGroup = getShopGroup(stack);
+        if (shopGroup.isEmpty()) return;
+
+        ServerLevel serverLevel = (ServerLevel) level;
+        ShopGroupManager manager = ShopGroupManager.get(serverLevel);
+        ShopGroup group = manager.getGroup(shopGroup);
+        if (group == null) return;
+
+        // Chairs: green particles
+        for (BlockPos pos : group.getChairPositions()) {
+            serverLevel.sendParticles(player, ParticleTypes.HAPPY_VILLAGER, true,
+                    pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
+                    3, 0.25, 0.25, 0.25, 0);
+        }
+        // Standing positions: white rising particles
+        for (BlockPos pos : group.getStandingPositions()) {
+            serverLevel.sendParticles(player, ParticleTypes.END_ROD, true,
+                    pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
+                    3, 0.25, 0.25, 0.25, 0);
+        }
+        // Selling shelves B: enchantment particles
+        for (BlockPos pos : group.getSellingShelfBPositions()) {
+            serverLevel.sendParticles(player, ParticleTypes.ENCHANT, true,
+                    pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
+                    5, 0.3, 0.3, 0.3, 0.5);
+        }
+        // Registers: composter particles (green/gold)
+        for (BlockPos pos : group.getRegisterPositions()) {
+            serverLevel.sendParticles(player, ParticleTypes.COMPOSTER, true,
+                    pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
+                    5, 0.3, 0.3, 0.3, 0);
+        }
     }
 
     @Override
@@ -212,14 +308,11 @@ public class ChairSettingStick extends Item {
         ItemStack stack = player.getItemInHand(hand);
         Mode mode = getMode(stack);
 
-        // Shift+right click in air: cycle mode
+        // Shift+right click in air: cycle mode (display handled by inventoryTick)
         if (player.isShiftKeyDown()) {
             if (!level.isClientSide) {
                 Mode newMode = mode.next();
                 setMode(stack, newMode);
-                player.displayClientMessage(
-                        Component.translatable("item.village_shop_system.chair_setting_stick.mode_changed",
-                                newMode.getDisplayName()), true);
             }
             return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
         }

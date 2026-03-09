@@ -51,24 +51,38 @@ public class SellingShelfBlockEntity extends BaseShelfBlockEntity {
     // --- Trade execution (called by villager AI) ---
 
     /**
-     * Attempt to process trades in this shelf.
-     * Scans input slots for sellable items, calculates emerald value,
-     * consumes items and produces emeralds in output slots.
-     *
+     * Attempt to process trades in this shelf with unlimited budget.
      * @return the number of emeralds generated (0 if nothing to trade)
      */
     public int processTrades() {
-        int totalEmeralds = 0;
+        return processTrades(Integer.MAX_VALUE);
+    }
 
-        for (int i = 0; i < INPUT_SLOTS; i++) {
+    /**
+     * Attempt to process trades in this shelf with a budget limit.
+     * Scans input slots for sellable items, calculates emerald value,
+     * consumes items and produces emeralds in output slots.
+     * Stops when budget is exhausted.
+     *
+     * @param budget maximum emeralds to generate in this trade session
+     * @return the number of emeralds generated (0 if nothing to trade)
+     */
+    public int processTrades(int budget) {
+        int totalEmeralds = 0;
+        int remaining = budget;
+
+        for (int i = 0; i < INPUT_SLOTS && remaining > 0; i++) {
             ItemStack stack = items.get(i);
             if (stack.isEmpty()) continue;
 
             int emeralds = TradePriceCalculator.calculateSellPrice(stack);
             if (emeralds <= 0) continue;
 
+            // Cap by budget
+            int toInsert = Math.min(emeralds, remaining);
+
             // Try to insert emeralds into output slots
-            int inserted = insertEmeralds(emeralds);
+            int inserted = insertEmeralds(toInsert);
             if (inserted > 0) {
                 // Calculate how many items to consume proportionally
                 int totalPossible = TradePriceCalculator.calculateSellPrice(stack);
@@ -85,6 +99,7 @@ public class SellingShelfBlockEntity extends BaseShelfBlockEntity {
                         items.set(i, ItemStack.EMPTY);
                     }
                     totalEmeralds += inserted;
+                    remaining -= inserted;
                 }
             }
         }

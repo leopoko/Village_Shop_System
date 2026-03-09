@@ -3,6 +3,6 @@
   "textures": {
     "top": "minecraft:block/birch_planks",
     "bottom": "minecraft:block/birch_planks",
-    "side": "minecraft:block/chiseled_bookshelf"
+    "side": "minecraft:block/chiseled_bookshelf_side"
   }
 }
