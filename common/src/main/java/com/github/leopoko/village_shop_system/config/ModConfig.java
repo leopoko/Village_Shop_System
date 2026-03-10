@@ -9,6 +9,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Mod configuration with JSON file persistence.
@@ -33,9 +36,34 @@ public final class ModConfig {
     public static double purchasePriceMultiplier = 5.0;
     public static double foodPricePerHunger = 0.25;
     public static int potionBasePrice = 3;
+    public static int potionDurationUnit = 3600; // ticks per price unit (3600 = 3 minutes)
     public static double toolDurabilityFactor = 0.005;
     public static double toolSpeedFactor = 0.5;
     public static int enchantedBookBasePrice = 5;
+
+    // === Feature Toggles ===
+    public static boolean enablePotionSelling = true;
+    public static boolean enableEnchantedBookTrading = true;
+
+    // === Custom Prices ===
+    // Key: item registry name (e.g. "minecraft:cake"), Value: [emeralds, itemCount]
+    public static Map<String, int[]> customSellPrices = createDefaultSellPrices();
+    // Key: item registry name, Value: emerald cost per item
+    public static Map<String, Integer> customBuyPrices = new LinkedHashMap<>();
+    // Key: enchantment registry name (e.g. "minecraft:mending"), Value: emerald cost
+    public static Map<String, Integer> enchantedBookBuyPrices = createDefaultEnchantedBookPrices();
+
+    private static Map<String, int[]> createDefaultSellPrices() {
+        Map<String, int[]> map = new LinkedHashMap<>();
+        map.put("minecraft:cake", new int[]{1, 1});
+        return map;
+    }
+
+    private static Map<String, Integer> createDefaultEnchantedBookPrices() {
+        Map<String, Integer> map = new LinkedHashMap<>();
+        map.put("minecraft:mending", 125);
+        return map;
+    }
 
     // === Behavior ===
     public static int minRestTicks = 100;
@@ -63,9 +91,19 @@ public final class ModConfig {
         double purchasePriceMultiplier = 1.2;
         double foodPricePerHunger = 0.25;
         int potionBasePrice = 3;
+        int potionDurationUnit = 3600;
         double toolDurabilityFactor = 0.005;
         double toolSpeedFactor = 0.5;
         int enchantedBookBasePrice = 5;
+
+        // Feature Toggles
+        boolean enablePotionSelling = true;
+        boolean enableEnchantedBookTrading = true;
+
+        // Custom Prices
+        Map<String, int[]> customSellPrices = createDefaultSellPrices();
+        Map<String, Integer> customBuyPrices = new LinkedHashMap<>();
+        Map<String, Integer> enchantedBookBuyPrices = createDefaultEnchantedBookPrices();
 
         // Behavior
         int minRestTicks = 100;
@@ -114,9 +152,15 @@ public final class ModConfig {
         data.purchasePriceMultiplier = purchasePriceMultiplier;
         data.foodPricePerHunger = foodPricePerHunger;
         data.potionBasePrice = potionBasePrice;
+        data.potionDurationUnit = potionDurationUnit;
         data.toolDurabilityFactor = toolDurabilityFactor;
         data.toolSpeedFactor = toolSpeedFactor;
         data.enchantedBookBasePrice = enchantedBookBasePrice;
+        data.enablePotionSelling = enablePotionSelling;
+        data.enableEnchantedBookTrading = enableEnchantedBookTrading;
+        data.customSellPrices = customSellPrices;
+        data.customBuyPrices = customBuyPrices;
+        data.enchantedBookBuyPrices = enchantedBookBuyPrices;
         data.minRestTicks = minRestTicks;
         data.maxRestTicks = maxRestTicks;
         data.pauseCooldownWhileSleeping = pauseCooldownWhileSleeping;
@@ -145,9 +189,15 @@ public final class ModConfig {
         purchasePriceMultiplier = data.purchasePriceMultiplier;
         foodPricePerHunger = data.foodPricePerHunger;
         potionBasePrice = data.potionBasePrice;
+        potionDurationUnit = data.potionDurationUnit;
         toolDurabilityFactor = data.toolDurabilityFactor;
         toolSpeedFactor = data.toolSpeedFactor;
         enchantedBookBasePrice = data.enchantedBookBasePrice;
+        enablePotionSelling = data.enablePotionSelling;
+        enableEnchantedBookTrading = data.enableEnchantedBookTrading;
+        customSellPrices = data.customSellPrices != null ? data.customSellPrices : createDefaultSellPrices();
+        customBuyPrices = data.customBuyPrices != null ? data.customBuyPrices : new LinkedHashMap<>();
+        enchantedBookBuyPrices = data.enchantedBookBuyPrices != null ? data.enchantedBookBuyPrices : createDefaultEnchantedBookPrices();
         minRestTicks = data.minRestTicks;
         maxRestTicks = data.maxRestTicks;
         pauseCooldownWhileSleeping = data.pauseCooldownWhileSleeping;

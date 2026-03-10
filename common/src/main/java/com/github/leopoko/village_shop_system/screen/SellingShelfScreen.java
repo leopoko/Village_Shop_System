@@ -4,10 +4,13 @@ import com.github.leopoko.village_shop_system.blockentity.BaseShelfBlockEntity;
 import com.github.leopoko.village_shop_system.blockentity.SellingShelfBBlockEntity;
 import com.github.leopoko.village_shop_system.menu.SellingShelfMenu;
 import com.github.leopoko.village_shop_system.network.ModPackets;
+import com.github.leopoko.village_shop_system.config.ModConfig;
 import com.github.leopoko.village_shop_system.trade.TradePriceCalculator;
 import com.github.leopoko.village_shop_system.trade.TradeRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -226,8 +229,16 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
                         stack.getCount(), totalEmeralds).withStyle(ChatFormatting.DARK_GREEN));
             }
         } else {
-            tooltip.add(Component.translatable("tooltip.village_shop_system.not_tradeable")
-                    .withStyle(ChatFormatting.RED));
+            // No ratio available (potion/enchanted book prices depend on component data)
+            // Try calculating price from the full ItemStack
+            int totalEmeralds = TradePriceCalculator.calculateSellPrice(stack);
+            if (totalEmeralds > 0) {
+                tooltip.add(Component.translatable("tooltip.village_shop_system.sell_price",
+                        totalEmeralds).withStyle(ChatFormatting.GREEN));
+            } else {
+                tooltip.add(Component.translatable("tooltip.village_shop_system.not_tradeable")
+                        .withStyle(ChatFormatting.RED));
+            }
         }
     }
 
@@ -257,11 +268,31 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
 
         List<TradeListOverlay.Entry> entries = new ArrayList<>();
 
-        // Collect sellable items from vanilla trades
+        // Collect sellable items from vanilla trades + config
+        Set<Item> processed = new java.util.HashSet<>();
         Set<Item> sellable = TradeRegistry.getAllSellableItems();
         for (Item item : sellable) {
+            processed.add(item);
             int[] ratio = TradePriceCalculator.getSellTradeRatio(item);
             if (ratio != null) {
+                ItemStack icon = new ItemStack(item);
+                Component name = item.getDescription();
+                String priceStr;
+                if (ratio[1] == 1) {
+                    priceStr = ratio[0] + "em";
+                } else {
+                    priceStr = ratio[1] + " \u2192 " + ratio[0] + "em";
+                }
+                Component price = Component.literal(priceStr).withStyle(ChatFormatting.DARK_GREEN);
+                entries.add(new TradeListOverlay.Entry(icon, name, price));
+            }
+        }
+
+        // Add custom sell price items not already included
+        for (var entry : ModConfig.customSellPrices.entrySet()) {
+            Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(entry.getKey()));
+            if (item != null && !processed.contains(item)) {
+                int[] ratio = entry.getValue();
                 ItemStack icon = new ItemStack(item);
                 Component name = item.getDescription();
                 String priceStr;
@@ -278,10 +309,15 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
         // Sort by item name
         entries.sort(Comparator.comparing(e -> e.name().getString()));
 
-        List<Component> footerNotes = List.of(
-                Component.translatable("screen.village_shop_system.trade_overlay.food_note"),
-                Component.translatable("screen.village_shop_system.trade_overlay.tool_note")
-        );
+        List<Component> footerNotes = new ArrayList<>();
+        footerNotes.add(Component.translatable("screen.village_shop_system.trade_overlay.food_note"));
+        footerNotes.add(Component.translatable("screen.village_shop_system.trade_overlay.tool_note"));
+        if (ModConfig.enablePotionSelling) {
+            footerNotes.add(Component.translatable("screen.village_shop_system.trade_overlay.potion_note"));
+        }
+        if (ModConfig.enableEnchantedBookTrading) {
+            footerNotes.add(Component.translatable("screen.village_shop_system.trade_overlay.enchanted_book_note"));
+        }
         Component header = Component.translatable("screen.village_shop_system.trade_overlay.header_sell")
                 .withStyle(ChatFormatting.BOLD);
         tradeListOverlay = new TradeListOverlay(entries, header, footerNotes);
