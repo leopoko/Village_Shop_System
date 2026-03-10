@@ -5,6 +5,7 @@ import com.github.leopoko.village_shop_system.registry.ModBlockEntities;
 import com.github.leopoko.village_shop_system.registry.ModBlocks;
 import com.github.leopoko.village_shop_system.registry.ModCreativeTabs;
 import com.github.leopoko.village_shop_system.registry.ModItems;
+import com.github.leopoko.village_shop_system.registry.ModEntityTypes;
 import com.github.leopoko.village_shop_system.registry.ModMenuTypes;
 import com.github.leopoko.village_shop_system.network.ModPackets;
 
@@ -16,6 +17,7 @@ public final class Village_shop_system {
         ModBlocks.register();
         ModItems.register();
         ModBlockEntities.register();
+        ModEntityTypes.register();
         ModMenuTypes.register();
         ModCreativeTabs.register();
         ModPackets.register();

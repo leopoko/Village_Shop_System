@@ -2,13 +2,16 @@ package com.github.leopoko.village_shop_system;
 
 import com.github.leopoko.village_shop_system.block.AbstractShopBlock;
 import com.github.leopoko.village_shop_system.item.ChairSettingStick;
+import com.github.leopoko.village_shop_system.registry.ModEntityTypes;
 import com.github.leopoko.village_shop_system.registry.ModMenuTypes;
 import com.github.leopoko.village_shop_system.screen.PurchaseShelfScreen;
 import com.github.leopoko.village_shop_system.screen.RegisterScreen;
 import com.github.leopoko.village_shop_system.screen.SellingShelfScreen;
 import com.github.leopoko.village_shop_system.screen.ShopGroupSettingScreen;
+import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
 import dev.architectury.registry.menu.MenuRegistry;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.NoopRenderer;
 
 /**
  * Common client-side initialization. Called from both Fabric and NeoForge client entry points.
@@ -42,10 +45,18 @@ public final class Village_shop_systemClient {
     }
 
     /**
+     * Register entity renderers. Called early from both loaders.
+     */
+    public static void registerEntityRenderers() {
+        EntityRendererRegistry.register(ModEntityTypes.SEAT, NoopRenderer::new);
+    }
+
+    /**
      * Full init for Fabric (screens + callbacks in one call).
      */
     public static void init() {
         registerScreens();
+        registerEntityRenderers();
         initCallbacks();
     }
 

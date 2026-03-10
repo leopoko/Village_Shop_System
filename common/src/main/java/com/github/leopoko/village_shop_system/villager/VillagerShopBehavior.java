@@ -16,11 +16,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.EntityType;
+import com.github.leopoko.village_shop_system.entity.SeatEntity;
+import com.github.leopoko.village_shop_system.registry.ModEntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.item.Item;
@@ -97,7 +97,7 @@ public class VillagerShopBehavior {
 
     // Resting state
     private int restTimer = 0;
-    private ArmorStand seatEntity = null;
+    private SeatEntity seatEntity = null;
 
     // Item holding state: villagers visually hold purchased items
     private ItemStack heldItem = ItemStack.EMPTY;
@@ -147,12 +147,10 @@ public class VillagerShopBehavior {
      * Handles: chair ArmorStand dismount, held item clearing, cooldown setting.
      */
     private void cleanupAfterLoad(Villager villager) {
-        // Dismount from chair ArmorStand and discard it
-        if (villager.isPassenger() && villager.getVehicle() instanceof ArmorStand seat) {
+        // Dismount from chair seat entity and discard it
+        if (villager.isPassenger() && villager.getVehicle() instanceof SeatEntity seat) {
             villager.stopRiding();
-            if (seat.getTags().contains("village_shop_system_seat")) {
-                seat.discard();
-            }
+            seat.discard();
         }
         // Clear held item from shopping session
         clearHeldItem(villager);
@@ -580,20 +578,8 @@ public class VillagerShopBehavior {
     // --- CHAIR SITTING ---
 
     private void sitDown(Villager villager, ServerLevel level, BlockPos chairPos) {
-        ArmorStand seat = new ArmorStand(EntityType.ARMOR_STAND, level);
+        SeatEntity seat = new SeatEntity(ModEntityTypes.SEAT.get(), level);
         seat.setPos(chairPos.getX() + 0.5, chairPos.getY() + 0.2, chairPos.getZ() + 0.5);
-        seat.setInvisible(true);
-        seat.setNoGravity(true);
-        seat.setSilent(true);
-        seat.setInvulnerable(true);
-        // Tag for identification during world-load cleanup
-        seat.addTag("village_shop_system_seat");
-        // Set Marker flag via NBT to remove hitbox (setMarker is private)
-        CompoundTag tag = new CompoundTag();
-        seat.saveWithoutId(tag);
-        tag.putBoolean("Marker", true);
-        tag.putBoolean("Small", true);
-        seat.load(tag);
 
         level.addFreshEntity(seat);
         villager.startRiding(seat, true);
@@ -886,13 +872,13 @@ public class VillagerShopBehavior {
     }
 
     /**
-     * Check if a chair position is already occupied by an ArmorStand seat entity.
+     * Check if a chair position is already occupied by a seat entity.
      */
     private static boolean isChairOccupied(ServerLevel level, BlockPos pos) {
         AABB aabb = new AABB(
                 pos.getX() - 0.5, pos.getY(), pos.getZ() - 0.5,
                 pos.getX() + 1.5, pos.getY() + 2.0, pos.getZ() + 1.5);
-        return !level.getEntitiesOfClass(ArmorStand.class, aabb).isEmpty();
+        return !level.getEntitiesOfClass(SeatEntity.class, aabb).isEmpty();
     }
 
     /**

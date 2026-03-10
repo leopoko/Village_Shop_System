@@ -28,10 +28,11 @@ public final class Village_shop_systemNeoForgeClient {
     }
 
     /**
-     * Other client setup (callbacks, etc.).
+     * Other client setup (callbacks, entity renderers, etc.).
      */
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
+        Village_shop_systemClient.registerEntityRenderers();
         event.enqueueWork(Village_shop_systemClient::initCallbacks);
     }
 }
