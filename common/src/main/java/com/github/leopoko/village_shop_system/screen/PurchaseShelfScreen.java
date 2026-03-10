@@ -1,10 +1,13 @@
 package com.github.leopoko.village_shop_system.screen;
 
+import com.github.leopoko.village_shop_system.config.ModConfig;
 import com.github.leopoko.village_shop_system.menu.PurchaseShelfMenu;
 import com.github.leopoko.village_shop_system.trade.TradePriceCalculator;
 import com.github.leopoko.village_shop_system.trade.TradeRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.Holder;
@@ -22,6 +25,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -163,11 +167,25 @@ public class PurchaseShelfScreen extends AbstractContainerScreen<PurchaseShelfMe
 
         List<TradeListOverlay.Entry> entries = new ArrayList<>();
 
-        // Collect buyable items from vanilla trades
+        // Collect buyable items from vanilla trades + config
+        Set<Item> processed = new HashSet<>();
         Set<Item> buyable = TradeRegistry.getAllBuyableItems();
         for (Item item : buyable) {
+            processed.add(item);
             int price = TradePriceCalculator.calculateBuyPrice(item, 1);
             if (price > 0) {
+                ItemStack icon = new ItemStack(item);
+                Component name = item.getDescription();
+                Component priceComp = Component.literal(price + "em").withStyle(ChatFormatting.GOLD);
+                entries.add(new TradeListOverlay.Entry(icon, name, priceComp));
+            }
+        }
+
+        // Add custom buy price items not already included
+        for (var entry : ModConfig.customBuyPrices.entrySet()) {
+            Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(entry.getKey()));
+            if (item != null && !processed.contains(item)) {
+                int price = entry.getValue();
                 ItemStack icon = new ItemStack(item);
                 Component name = item.getDescription();
                 Component priceComp = Component.literal(price + "em").withStyle(ChatFormatting.GOLD);
@@ -178,8 +196,8 @@ public class PurchaseShelfScreen extends AbstractContainerScreen<PurchaseShelfMe
         // Sort regular items by name
         entries.sort(Comparator.comparing(e -> e.name().getString()));
 
-        // Add enchanted book entries
-        if (mc.player != null) {
+        // Add enchanted book entries (if enabled)
+        if (ModConfig.enableEnchantedBookTrading && mc.player != null) {
             List<TradeListOverlay.Entry> bookEntries = new ArrayList<>();
             Registry<Enchantment> enchReg = mc.player.registryAccess()
                     .registryOrThrow(Registries.ENCHANTMENT);

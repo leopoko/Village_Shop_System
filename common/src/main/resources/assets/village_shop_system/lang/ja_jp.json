@@ -46,6 +46,8 @@
   "screen.village_shop_system.trade_overlay.header_buy": "購入可能アイテム",
   "screen.village_shop_system.trade_overlay.food_note": "+ 全食料（満腹度ベースの価格）",
   "screen.village_shop_system.trade_overlay.tool_note": "+ 全ツール（ティアベースの価格）",
+  "screen.village_shop_system.trade_overlay.potion_note": "+ ポーション（効果・レベル・持続時間ベースの価格）",
+  "screen.village_shop_system.trade_overlay.enchanted_book_note": "+ エンチャント本（エンチャントレベルベースの価格）",
   "tooltip.village_shop_system.sneak_hint": "§8スニーク+クリック: 店グループ設定",
 
   "screen.village_shop_system.shop_group_setting": "店グループ設定",

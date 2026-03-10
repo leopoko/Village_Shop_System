@@ -46,6 +46,8 @@
   "screen.village_shop_system.trade_overlay.header_buy": "Purchasable Items",
   "screen.village_shop_system.trade_overlay.food_note": "+ All food items (nutrition-based pricing)",
   "screen.village_shop_system.trade_overlay.tool_note": "+ All tools (tier-based pricing)",
+  "screen.village_shop_system.trade_overlay.potion_note": "+ Potions (effect/level/duration-based pricing)",
+  "screen.village_shop_system.trade_overlay.enchanted_book_note": "+ Enchanted books (enchantment level-based pricing)",
   "tooltip.village_shop_system.sneak_hint": "§8Sneak+click: Shop Group Settings",
 
   "screen.village_shop_system.shop_group_setting": "Shop Group Settings",
