@@ -1,15 +1,14 @@
 package com.github.leopoko.village_shop_system.neoforge;
 
 import com.github.leopoko.village_shop_system.Village_shop_system;
-import com.github.leopoko.village_shop_system.config.ModConfigScreen;
 import com.github.leopoko.village_shop_system.registry.ModBlockEntities;
 import net.minecraft.core.Direction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.items.wrapper.SidedInvWrapper;
 
 @Mod(Village_shop_system.MOD_ID)
@@ -21,9 +20,10 @@ public final class Village_shop_systemNeoForge {
         // Register IItemHandler capability for industrial pipe / Create mod compatibility
         modEventBus.addListener(this::registerCapabilities);
 
-        // Register config screen factory for NeoForge mod list
-        container.registerExtensionPoint(IConfigScreenFactory.class,
-                (mc, parent) -> ModConfigScreen.create(parent));
+        // Register config screen factory for NeoForge mod list (client only)
+        if (FMLEnvironment.dist.isClient()) {
+            Village_shop_systemNeoForgeClient.registerConfigScreen(container);
+        }
     }
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
