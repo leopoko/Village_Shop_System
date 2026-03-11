@@ -2,6 +2,7 @@ plugins {
     id 'dev.architectury.loom' version '1.13-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.4-SNAPSHOT'
     id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
+    id 'me.modmuss50.mod-publish-plugin' version '0.8.4'
 }
 
 architectury {
@@ -68,5 +69,63 @@ subprojects {
             // The repositories here will be used for publishing your artifact, not for
             // retrieving dependencies.
         }
+    }
+}
+
+// === CHANGELOG.md から最新バージョンのセクションのみ抽出 ===
+def extractLatestChangelog() {
+    def changelogFile = file("CHANGELOG.md")
+    if (!changelogFile.exists()) return "v${project.mod_version}"
+
+    def lines = changelogFile.text.readLines()
+    def result = []
+    def found = false
+
+    for (line in lines) {
+        if (line.matches(/^## \[.*\].*/) && !found) {
+            found = true
+            continue
+        }
+        if (line.matches(/^## \[.*\].*/) && found) {
+            break
+        }
+        if (found) {
+            result << line
+        }
+    }
+
+    def text = result.join("\n").trim()
+    return text.isEmpty() ? "v${project.mod_version}" : text
+}
+
+// === CurseForge公開設定 ===
+publishMods {
+    changelog = extractLatestChangelog()
+    type = STABLE
+
+    def cfOptions = curseforgeOptions {
+        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
+        projectId = "1483501"
+        minecraftVersions.add("1.21.1")
+        javaVersions.add(JavaVersion.VERSION_21)
+        requires("architectury-api")
+        requires("cloth-config")
+    }
+
+    // Fabric版
+    curseforge("curseforgeFabric") {
+        from cfOptions
+        file = project(":fabric").remapJar.archiveFile
+        displayName = "Village Shop System v${project.mod_version} (Fabric)"
+        modLoaders.add("fabric")
+        requires("fabric-api")
+    }
+
+    // NeoForge版
+    curseforge("curseforgeNeoForge") {
+        from cfOptions
+        file = project(":neoforge").remapJar.archiveFile
+        displayName = "Village Shop System v${project.mod_version} (NeoForge)"
+        modLoaders.add("neoforge")
     }
 }
