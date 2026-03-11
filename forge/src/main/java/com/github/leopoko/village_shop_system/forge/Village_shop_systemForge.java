@@ -13,6 +13,7 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import dev.architectury.platform.forge.EventBuses;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
@@ -24,6 +25,9 @@ import org.jetbrains.annotations.Nullable;
 @Mod(Village_shop_system.MOD_ID)
 public final class Village_shop_systemForge {
     public Village_shop_systemForge() {
+        // Register Architectury event bus BEFORE any DeferredRegister calls
+        EventBuses.registerModEventBus(Village_shop_system.MOD_ID, FMLJavaModLoadingContext.get().getModEventBus());
+
         // Run our common setup.
         Village_shop_system.init();
 
