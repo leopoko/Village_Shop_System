@@ -193,7 +193,7 @@ public final class TradeRegistry {
         addSellPrice(Items.ROTTEN_FLESH, 1, 32);
         addSellPrice(Items.GOLD_INGOT, 1, 3);
         addSellPrice(Items.RABBIT_FOOT, 1, 2);
-        addSellPrice(Items.TURTLE_SCUTE, 1, 4);
+        addSellPrice(Items.SCUTE, 1, 4);
         addSellPrice(Items.GLASS_BOTTLE, 1, 9);
         addSellPrice(Items.NETHER_WART, 1, 22);
         addBuyPrice(Items.REDSTONE, 1, 2);
@@ -331,7 +331,7 @@ public final class TradeRegistry {
         if (listings == null) return;
         for (VillagerTrades.ItemListing listing : listings) {
             try {
-                MerchantOffer offer = listing.getOffer(entity, entity.getRandom());
+                MerchantOffer offer = listing.getOffer(entity, entity.level().getRandom());
                 if (offer != null) {
                     processOffer(offer);
                 }
