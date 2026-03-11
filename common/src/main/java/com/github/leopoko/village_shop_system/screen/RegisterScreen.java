@@ -65,7 +65,7 @@ public class RegisterScreen extends AbstractContainerScreen<RegisterMenu> {
         String groupName = groupNameField.getValue().trim();
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null) {
-            ModPackets.sendShopGroupUpdate(mc.player.registryAccess(), menu.getBlockPos(), groupName);
+            ModPackets.sendShopGroupUpdate(menu.getBlockPos(), groupName);
         }
     }
 

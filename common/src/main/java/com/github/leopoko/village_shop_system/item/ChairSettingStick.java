@@ -67,45 +67,27 @@ public class ChairSettingStick extends Item {
     }
 
     public static Mode getMode(ItemStack stack) {
-        if (stack.has(net.minecraft.core.component.DataComponents.CUSTOM_DATA)) {
-            var customData = stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
-            if (customData != null) {
-                int mode = customData.copyTag().getInt(TAG_MODE);
-                Mode[] values = Mode.values();
-                if (mode >= 0 && mode < values.length) return values[mode];
-            }
+        if (stack.hasTag()) {
+            int mode = stack.getTag().getInt(TAG_MODE);
+            Mode[] values = Mode.values();
+            if (mode >= 0 && mode < values.length) return values[mode];
         }
         return Mode.SHOP_GROUP;
     }
 
     public static String getShopGroup(ItemStack stack) {
-        if (stack.has(net.minecraft.core.component.DataComponents.CUSTOM_DATA)) {
-            var customData = stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
-            if (customData != null) {
-                return customData.copyTag().getString(TAG_SHOP_GROUP);
-            }
+        if (stack.hasTag()) {
+            return stack.getTag().getString(TAG_SHOP_GROUP);
         }
         return "";
     }
 
     public static void setMode(ItemStack stack, Mode mode) {
-        stack.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
-                net.minecraft.world.item.component.CustomData.EMPTY,
-                data -> {
-                    var tag = data.copyTag();
-                    tag.putInt(TAG_MODE, mode.ordinal());
-                    return net.minecraft.world.item.component.CustomData.of(tag);
-                });
+        stack.getOrCreateTag().putInt(TAG_MODE, mode.ordinal());
     }
 
     public static void setShopGroup(ItemStack stack, String group) {
-        stack.update(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
-                net.minecraft.world.item.component.CustomData.EMPTY,
-                data -> {
-                    var tag = data.copyTag();
-                    tag.putString(TAG_SHOP_GROUP, group);
-                    return net.minecraft.world.item.component.CustomData.of(tag);
-                });
+        stack.getOrCreateTag().putString(TAG_SHOP_GROUP, group);
     }
 
     @Override

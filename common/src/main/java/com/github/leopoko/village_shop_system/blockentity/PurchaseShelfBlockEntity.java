@@ -6,7 +6,6 @@ import com.github.leopoko.village_shop_system.trade.TradePriceCalculator;
 import net.minecraft.world.Container;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -75,7 +74,8 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
     }
 
     public void setConfiguredItem(ItemStack item) {
-        this.configuredItem = item.isEmpty() ? ItemStack.EMPTY : item.copyWithCount(1);
+        this.configuredItem = item.isEmpty() ? ItemStack.EMPTY : item.copy();
+        if (!this.configuredItem.isEmpty()) this.configuredItem.setCount(1);
         setChanged();
         syncToClient();
     }
@@ -158,7 +158,7 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
         for (int i = PURCHASE_INPUT_SLOTS; i < TOTAL_SLOTS; i++) {
             ItemStack existing = items.get(i);
             if (existing.isEmpty()) return true;
-            if (ItemStack.isSameItemSameComponents(existing, item) && existing.getCount() < existing.getMaxStackSize()) {
+            if (ItemStack.isSameItemSameTags(existing, item) && existing.getCount() < existing.getMaxStackSize()) {
                 return true;
             }
         }
@@ -172,7 +172,7 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
         // Try to merge with existing stacks first
         for (int i = PURCHASE_INPUT_SLOTS; i < TOTAL_SLOTS; i++) {
             ItemStack existing = items.get(i);
-            if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(existing, item)) {
+            if (!existing.isEmpty() && ItemStack.isSameItemSameTags(existing, item)) {
                 int space = existing.getMaxStackSize() - existing.getCount();
                 if (space > 0) {
                     int toInsert = Math.min(item.getCount(), space);
@@ -243,19 +243,18 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
     // --- NBT ---
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
         if (!configuredItem.isEmpty()) {
-            CompoundTag itemTag = new CompoundTag();
-            tag.put("ConfiguredItem", configuredItem.save(registries, itemTag));
+            tag.put("ConfiguredItem", configuredItem.save(new CompoundTag()));
         }
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    public void load(CompoundTag tag) {
+        super.load(tag);
         if (tag.contains("ConfiguredItem")) {
-            configuredItem = ItemStack.parse(registries, tag.getCompound("ConfiguredItem")).orElse(ItemStack.EMPTY);
+            configuredItem = ItemStack.of(tag.getCompound("ConfiguredItem"));
         }
     }
 }

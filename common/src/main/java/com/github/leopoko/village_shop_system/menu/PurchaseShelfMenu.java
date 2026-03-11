@@ -71,9 +71,10 @@ public class PurchaseShelfMenu extends AbstractContainerMenu {
                     // Clicking with empty hand clears the config
                     container.setItem(PurchaseShelfBlockEntity.CONFIG_SLOT, ItemStack.EMPTY);
                 } else {
-                    // Set config to carried item (preserve components like enchantments)
-                    container.setItem(PurchaseShelfBlockEntity.CONFIG_SLOT,
-                            carried.copyWithCount(1));
+                    // Set config to carried item (preserve tags like enchantments)
+                    ItemStack copy = carried.copy();
+                    copy.setCount(1);
+                    container.setItem(PurchaseShelfBlockEntity.CONFIG_SLOT, copy);
                 }
                 return;
             }
@@ -108,7 +109,7 @@ public class PurchaseShelfMenu extends AbstractContainerMenu {
             }
 
             if (current.isEmpty()) {
-                slot.setByPlayer(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             } else {
                 slot.setChanged();
             }

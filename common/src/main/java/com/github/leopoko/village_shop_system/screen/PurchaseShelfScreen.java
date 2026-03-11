@@ -10,10 +10,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
@@ -21,7 +17,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -101,13 +97,13 @@ public class PurchaseShelfScreen extends AbstractContainerScreen<PurchaseShelfMe
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
         if (tradeListOverlay != null && tradeListOverlay.isVisible()) {
-            if (tradeListOverlay.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) {
+            if (tradeListOverlay.mouseScrolled(mouseX, mouseY, 0, scrollY)) {
                 return true;
             }
         }
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        return super.mouseScrolled(mouseX, mouseY, scrollY);
     }
 
     @Override
@@ -183,7 +179,7 @@ public class PurchaseShelfScreen extends AbstractContainerScreen<PurchaseShelfMe
 
         // Add custom buy price items not already included
         for (var entry : ModConfig.customBuyPrices.entrySet()) {
-            Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(entry.getKey()));
+            Item item = BuiltInRegistries.ITEM.get(new ResourceLocation(entry.getKey()));
             if (item != null && !processed.contains(item)) {
                 int price = entry.getValue();
                 ItemStack icon = new ItemStack(item);
@@ -197,17 +193,15 @@ public class PurchaseShelfScreen extends AbstractContainerScreen<PurchaseShelfMe
         entries.sort(Comparator.comparing(e -> e.name().getString()));
 
         // Add enchanted book entries (if enabled)
-        if (ModConfig.enableEnchantedBookTrading && mc.player != null) {
+        if (ModConfig.enableEnchantedBookTrading) {
             List<TradeListOverlay.Entry> bookEntries = new ArrayList<>();
-            Registry<Enchantment> enchReg = mc.player.registryAccess()
-                    .registryOrThrow(Registries.ENCHANTMENT);
-            for (Holder.Reference<Enchantment> holder : enchReg.holders().toList()) {
-                int maxLevel = holder.value().getMaxLevel();
+            for (Enchantment enchantment : BuiltInRegistries.ENCHANTMENT) {
+                int maxLevel = enchantment.getMaxLevel();
                 for (int lvl = 1; lvl <= maxLevel; lvl++) {
-                    ItemStack book = createEnchantedBook(holder, lvl);
+                    ItemStack book = createEnchantedBook(enchantment, lvl);
                     int price = TradePriceCalculator.calculateBuyPrice(book, 1);
                     if (price > 0) {
-                        Component name = Enchantment.getFullname(holder, lvl);
+                        Component name = enchantment.getFullname(lvl);
                         Component priceComp = Component.literal(price + "em")
                                 .withStyle(ChatFormatting.GOLD);
                         bookEntries.add(new TradeListOverlay.Entry(book, name, priceComp));
@@ -223,11 +217,10 @@ public class PurchaseShelfScreen extends AbstractContainerScreen<PurchaseShelfMe
         tradeListOverlay = new TradeListOverlay(entries, header, List.of());
     }
 
-    private static ItemStack createEnchantedBook(Holder<Enchantment> holder, int level) {
+    private static ItemStack createEnchantedBook(Enchantment enchantment, int level) {
         ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
-        ItemEnchantments.Mutable builder = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
-        builder.set(holder, level);
-        book.set(DataComponents.STORED_ENCHANTMENTS, builder.toImmutable());
+        EnchantmentHelper.setEnchantments(
+                java.util.Map.of(enchantment, level), book);
         return book;
     }
 }

@@ -90,7 +90,7 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
         String groupName = groupNameField.getValue().trim();
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null) {
-            ModPackets.sendShopGroupUpdate(mc.player.registryAccess(), menu.getBlockPos(), groupName);
+            ModPackets.sendShopGroupUpdate(menu.getBlockPos(), groupName);
         }
     }
 
@@ -243,13 +243,13 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
         if (tradeListOverlay != null && tradeListOverlay.isVisible()) {
-            if (tradeListOverlay.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) {
+            if (tradeListOverlay.mouseScrolled(mouseX, mouseY, 0, scrollY)) {
                 return true;
             }
         }
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        return super.mouseScrolled(mouseX, mouseY, scrollY);
     }
 
     /**
@@ -290,7 +290,7 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
 
         // Add custom sell price items not already included
         for (var entry : ModConfig.customSellPrices.entrySet()) {
-            Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(entry.getKey()));
+            Item item = BuiltInRegistries.ITEM.get(new ResourceLocation(entry.getKey()));
             if (item != null && !processed.contains(item)) {
                 int[] ratio = entry.getValue();
                 ItemStack icon = new ItemStack(item);

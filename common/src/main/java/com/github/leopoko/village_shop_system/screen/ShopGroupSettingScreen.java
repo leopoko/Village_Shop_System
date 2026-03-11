@@ -68,10 +68,10 @@ public class ShopGroupSettingScreen extends Screen {
         if (mc.player != null) {
             if (targetBlockPos != null) {
                 // Block mode: update the block entity's shop group
-                ModPackets.sendShopGroupUpdate(mc.player.registryAccess(), targetBlockPos, groupName);
+                ModPackets.sendShopGroupUpdate(targetBlockPos, groupName);
             } else {
                 // Stick mode: update the chair setting stick's shop group
-                ModPackets.sendStickGroupUpdate(mc.player.registryAccess(), groupName);
+                ModPackets.sendStickGroupUpdate(groupName);
             }
         }
         onClose();
@@ -109,7 +109,7 @@ public class ShopGroupSettingScreen extends Screen {
      * In MC 1.21.1, the default renderBackground() adds a blur overlay that obscures content.
      */
     @Override
-    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void renderBackground(GuiGraphics guiGraphics) {
         // Semi-transparent fullscreen dim (no blur)
         guiGraphics.fill(0, 0, width, height, 0x80000000);
 

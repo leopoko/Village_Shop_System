@@ -7,7 +7,6 @@ import com.github.leopoko.village_shop_system.shopgroup.ShopGroupManager;
 import com.github.leopoko.village_shop_system.trade.TradePriceCalculator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -280,14 +279,14 @@ public class SellingShelfBBlockEntity extends BaseShelfBlockEntity {
     // --- NBT ---
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
         tag.putString("ShopGroup", shopGroup);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    public void load(CompoundTag tag) {
+        super.load(tag);
         shopGroup = tag.getString("ShopGroup");
     }
 }

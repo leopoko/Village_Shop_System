@@ -120,7 +120,7 @@ public class SellingShelfMenu extends AbstractContainerMenu {
             }
 
             if (current.isEmpty()) {
-                slot.setByPlayer(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             } else {
                 slot.setChanged();
             }

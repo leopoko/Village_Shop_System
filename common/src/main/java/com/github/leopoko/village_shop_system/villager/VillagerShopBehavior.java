@@ -774,8 +774,7 @@ public class VillagerShopBehavior {
      * Check if an item is a food item.
      */
     private static boolean isFood(Item item) {
-        ItemStack testStack = new ItemStack(item);
-        return testStack.has(net.minecraft.core.component.DataComponents.FOOD);
+        return item.getFoodProperties() != null;
     }
 
     /**

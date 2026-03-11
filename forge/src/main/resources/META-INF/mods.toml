@@ -1,6 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[2,)"
-#issueTrackerURL = ""
+loaderVersion = "[47,)"
 license = "MIT"
 
 [[mods]]
@@ -11,26 +10,25 @@ authors = ""
 description = '''
 
 '''
-#logoFile = ""
 
 [[dependencies.village_shop_system]]
-modId = "neoforge"
-type = "required"
-versionRange = "[21,)"
+modId = "forge"
+mandatory = true
+versionRange = "[47,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.village_shop_system]]
 modId = "minecraft"
-type = "required"
-versionRange = "[1.21.1,)"
+mandatory = true
+versionRange = "[1.20.1,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.village_shop_system]]
 modId = "architectury"
-type = "required"
-versionRange = "[13.0.8,)"
+mandatory = true
+versionRange = "[9.0.0,)"
 ordering = "AFTER"
 side = "BOTH"
 

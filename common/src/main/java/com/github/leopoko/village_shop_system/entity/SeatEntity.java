@@ -22,7 +22,7 @@ public class SeatEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+    protected void defineSynchedData() {
         // No synched data needed
     }
 

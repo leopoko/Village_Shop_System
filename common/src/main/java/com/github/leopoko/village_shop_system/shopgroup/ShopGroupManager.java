@@ -1,12 +1,10 @@
 package com.github.leopoko.village_shop_system.shopgroup;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.Nullable;
 
@@ -138,7 +136,7 @@ public class ShopGroupManager extends SavedData {
     // --- SavedData ---
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+    public CompoundTag save(CompoundTag tag) {
         ListTag groupList = new ListTag();
         for (ShopGroup group : groups.values()) {
             groupList.add(group.save());
@@ -147,7 +145,7 @@ public class ShopGroupManager extends SavedData {
         return tag;
     }
 
-    private static ShopGroupManager load(CompoundTag tag, HolderLookup.Provider registries) {
+    private static ShopGroupManager load(CompoundTag tag) {
         ShopGroupManager manager = new ShopGroupManager();
         ListTag groupList = tag.getList("Groups", Tag.TAG_COMPOUND);
         for (int i = 0; i < groupList.size(); i++) {
@@ -157,20 +155,12 @@ public class ShopGroupManager extends SavedData {
         return manager;
     }
 
-    public static SavedData.Factory<ShopGroupManager> factory() {
-        return new SavedData.Factory<>(
-                ShopGroupManager::new,
-                ShopGroupManager::load,
-                DataFixTypes.LEVEL
-        );
-    }
-
     /**
      * Get the ShopGroupManager for the given server level.
      * Always retrieves from the Overworld data storage.
      */
     public static ShopGroupManager get(ServerLevel level) {
         ServerLevel overworld = level.getServer().overworld();
-        return overworld.getDataStorage().computeIfAbsent(factory(), DATA_NAME);
+        return overworld.getDataStorage().computeIfAbsent(ShopGroupManager::load, ShopGroupManager::new, DATA_NAME);
     }
 }

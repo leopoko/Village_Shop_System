@@ -343,7 +343,7 @@ public final class TradeRegistry {
     }
 
     private static void processOffer(MerchantOffer offer) {
-        ItemStack costA = offer.getBaseCostA();
+        ItemStack costA = offer.getCostA();
         ItemStack costB = offer.getCostB();
         ItemStack result = offer.getResult();
 
