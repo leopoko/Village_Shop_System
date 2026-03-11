@@ -11,7 +11,7 @@ import com.github.leopoko.village_shop_system.screen.ShopGroupSettingScreen;
 import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
 import dev.architectury.registry.menu.MenuRegistry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.NoopRenderer;
+import com.github.leopoko.village_shop_system.entity.SeatEntityRenderer;
 
 /**
  * Common client-side initialization. Called from both Fabric and NeoForge client entry points.
@@ -48,7 +48,7 @@ public final class Village_shop_systemClient {
      * Register entity renderers. Called early from both loaders.
      */
     public static void registerEntityRenderers() {
-        EntityRendererRegistry.register(ModEntityTypes.SEAT, NoopRenderer::new);
+        EntityRendererRegistry.register(ModEntityTypes.SEAT, SeatEntityRenderer::new);
     }
 
     /**

@@ -9,7 +9,7 @@ import com.github.leopoko.village_shop_system.screen.PurchaseShelfScreen;
 import com.github.leopoko.village_shop_system.screen.RegisterScreen;
 import com.github.leopoko.village_shop_system.screen.SellingShelfScreen;
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.renderer.entity.NoopRenderer;
+import com.github.leopoko.village_shop_system.entity.SeatEntityRenderer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -26,7 +26,7 @@ public final class Village_shop_systemForgeClient {
      */
     @SubscribeEvent
     public static void onRegisterEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(ModEntityTypes.SEAT.get(), NoopRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.SEAT.get(), SeatEntityRenderer::new);
     }
 
     /**
