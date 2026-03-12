@@ -81,6 +81,14 @@ public class VillagerShopBehavior {
     private BlockPos target = null;
     private State state = State.IDLE;
 
+    /**
+     * Returns true if the villager is actively shopping (not IDLE).
+     * Used by VillagerMixin to suppress vanilla Brain AI interference.
+     */
+    public boolean isActive() {
+        return state != State.IDLE;
+    }
+
     // Budget tracking: random budget for each trade session
     private int tradeBudget = 0;
     private int budgetSpent = 0;

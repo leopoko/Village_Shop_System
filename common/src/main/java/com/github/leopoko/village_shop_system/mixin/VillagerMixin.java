@@ -3,6 +3,7 @@ package com.github.leopoko.village_shop_system.mixin;
 import com.github.leopoko.village_shop_system.villager.ShopBehaviorAccessor;
 import com.github.leopoko.village_shop_system.villager.VillagerShopBehavior;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.npc.Villager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -32,6 +33,15 @@ public abstract class VillagerMixin implements ShopBehaviorAccessor {
     @Override
     public void village_shop_system$updateTrades() {
         this.updateTrades();
+    }
+
+    @Inject(method = "customServerAiStep", at = @At("HEAD"))
+    private void village_shop_system$suppressBrainDuringShopping(CallbackInfo ci) {
+        if (village_shop_system$shopBehavior.isActive()) {
+            Villager self = (Villager) (Object) this;
+            self.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+            self.getBrain().eraseMemory(MemoryModuleType.INTERACTION_TARGET);
+        }
     }
 
     @Inject(method = "customServerAiStep", at = @At("TAIL"))
