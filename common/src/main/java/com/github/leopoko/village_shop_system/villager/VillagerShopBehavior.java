@@ -76,6 +76,14 @@ public class VillagerShopBehavior {
         LEAVING
     }
 
+    /**
+     * Returns true when the villager is actively shopping (not idle or on cooldown).
+     * Used by VillagerMixin to suppress vanilla Brain behaviors that would interfere with navigation.
+     */
+    public boolean isActive() {
+        return state != State.IDLE;
+    }
+
     private int cooldown = -1; // -1 = uninitialized, randomized on first tick to prevent startup rush
     private int navTimer = 0;
     private BlockPos target = null;

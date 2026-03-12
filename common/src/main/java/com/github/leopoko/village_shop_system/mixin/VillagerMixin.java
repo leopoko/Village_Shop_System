@@ -3,6 +3,7 @@ package com.github.leopoko.village_shop_system.mixin;
 import com.github.leopoko.village_shop_system.villager.ShopBehaviorAccessor;
 import com.github.leopoko.village_shop_system.villager.VillagerShopBehavior;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.npc.Villager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -32,6 +33,21 @@ public abstract class VillagerMixin implements ShopBehaviorAccessor {
     @Override
     public void village_shop_system$updateTrades() {
         this.updateTrades();
+    }
+
+    /**
+     * HEAD injection: suppress vanilla Brain behaviors that interfere with shop navigation.
+     * Clears WALK_TARGET and INTERACTION_TARGET memories so the vanilla AI doesn't
+     * redirect the villager (e.g., gossiping, socializing) while actively shopping.
+     */
+    @Inject(method = "customServerAiStep", at = @At("HEAD"))
+    private void village_shop_system$beforeAiStep(CallbackInfo ci) {
+        if (village_shop_system$shopBehavior.isActive()) {
+            Villager self = (Villager) (Object) this;
+            var brain = self.getBrain();
+            brain.eraseMemory(MemoryModuleType.WALK_TARGET);
+            brain.eraseMemory(MemoryModuleType.INTERACTION_TARGET);
+        }
     }
 
     @Inject(method = "customServerAiStep", at = @At("TAIL"))
