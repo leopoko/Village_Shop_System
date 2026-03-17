@@ -1,5 +1,216 @@
 # Village Shop System
 
+An automated villager trading system mod for Minecraft 1.21.1.
+Place shelves and registers in your village, and villagers will automatically browse the shelves and trade items.
+
+**Loaders:** Fabric / NeoForge (multi-loader via Architectury API)
+**Version:** Minecraft 1.21.1
+**License:** MIT
+
+## Required Dependencies
+
+| Mod | Fabric | NeoForge |
+|-----|--------|----------|
+| [Architectury API](https://modrinth.com/mod/architectury-api) | 13.0.8+ | 13.0.8+ |
+| [Fabric API](https://modrinth.com/mod/fabric-api) | Required | — |
+| [Cloth Config](https://modrinth.com/mod/cloth-config) | 15.0+ | 15.0+ |
+
+### Optional
+
+| Mod | Description |
+|-----|-------------|
+| [Mod Menu](https://modrinth.com/mod/modmenu) | Opens the config screen from Fabric's mod list (recommended) |
+
+---
+
+## Blocks
+
+### Selling Shelf
+
+Villagers buy items from this shelf with emeralds.
+
+- **Input slots (18):** Place items you want to sell
+- **Output slots (9):** Emeralds paid by villagers appear here
+- **Hopper:** Items in from top/sides, emeralds out from bottom
+- Hover over items to see sell prices in the tooltip
+- Press the "?" button in the GUI to view all tradeable items
+
+### Selling Shelf (Accounting)
+
+Same functionality as the Selling Shelf, plus **Shop Group** integration (see below).
+
+- Same input/output slot layout as the Selling Shelf
+- Set a **shop group name** to automatically transfer emeralds to registers in the same group
+- If no register exists in the group, emeralds go to the local output slots
+- When a villager interacts with this shelf, they enter a "shopping" state and visit other shelves in the same group
+
+### Purchase Shelf
+
+Spend emeralds to purchase items from villagers.
+
+- **Input slots (18):** Place emeralds here
+- **Output slots (9):** Purchased items appear here
+- **Config slot (1):** Set which item to buy (the item is not consumed)
+- **Hopper:** Emeralds in from top/sides, items out from bottom
+- To configure: Click the gold-highlighted config slot while holding the desired item
+
+### Cash Register
+
+Receives emeralds from Selling Shelves (Accounting) within the same shop group.
+
+- **Emerald slots (18):** View and withdraw only (players cannot insert items)
+- **Hopper:** Emeralds out from bottom only (no input)
+- Set a **shop group name** to link with Selling Shelves (Accounting)
+
+---
+
+## Shop Group System
+
+Link multiple Selling Shelves (Accounting) and Registers under a **shop group name** so villagers browse multiple shelves in one shopping trip.
+
+### Setup
+
+1. Place Selling Shelves (Accounting) and Registers
+2. Assign a shop group name using either method:
+   - Use the **Shop Setting Stick** (see below)
+   - **Sneak + right-click with empty hand** on a Selling Shelf (Accounting) or Register to open the group setting screen
+3. Blocks with the same group name are linked together
+
+### Villager Shopping Flow
+
+1. A villager finds a Selling Shelf (Accounting) within range and interacts with it
+2. Visits **1–3 other shelves** in the same group to trade
+3. Walks to the nearest **Register** for a payment animation (sound + particles)
+4. If chairs or standing positions are set, the villager **rests** there (with eating effects)
+5. After a cooldown, the villager starts shopping again
+
+---
+
+## Shop Setting Stick
+
+An item for configuring shop groups, chairs, and standing positions.
+
+**Shift + right-click** to cycle through modes:
+
+| Mode | Description |
+|------|-------------|
+| **Shop Group Setting** | Right-click to open GUI and assign a group name to the stick. Then click on a Selling Shelf (Accounting) or Register to apply the name |
+| **Chair Setting** | Click a stair block to register it as a chair (villagers sit here to rest) |
+| **Standing Position Setting** | Click a block to register the space above it as a standing position (villagers stand here to rest) |
+
+Note: A group name must be assigned to the stick before setting chairs or standing positions.
+
+---
+
+## Trading Rules
+
+### Tradeable Items
+
+Prices are determined in the following priority order:
+
+1. **Custom config items** — Set individual prices in the config
+2. **Enchanted books** — Auto-calculated based on level and rarity (toggleable in config)
+3. **Vanilla villager trade table items** — Uses vanilla prices as a base
+4. **Food** — Auto-calculated based on nutrition value
+5. **Tools** — Auto-calculated based on durability and mining speed
+6. **Potions** — Auto-calculated based on effect type and duration (toggleable in config)
+
+Items not matching any of the above cannot be traded.
+
+### Sell Prices
+
+- Based on vanilla trade table prices, with a **sell penalty** applied (default: −1 emerald)
+- The penalty also applies to auto-calculated items (food, tools, etc.)
+- Custom config prices are **not** affected by the penalty
+
+### Buy Prices
+
+- Based on vanilla trade table prices, with a **purchase markup** applied (default: ×5.0)
+- Custom config prices are **not** affected by the markup
+
+### Villager Budget
+
+- Each villager gets a random budget per shopping session (50%–150% of the config value)
+- Trading stops when the budget runs out
+
+### Shopping Rush
+
+- When a trade completes, there is a small chance (default: 0.5%) of triggering a **shopping rush**
+- All nearby villagers have their cooldowns reset and start shopping at once
+
+---
+
+## Configuration
+
+Open the config screen in-game or edit the config file directly.
+
+- **Fabric:** Open from Mod Menu
+- **NeoForge:** Open from the mod list
+- **File:** `config/village_shop_system.json`
+
+### Main Settings
+
+| Category | Setting | Default | Description |
+|----------|---------|:---:|-------------|
+| **Villager AI** | Search range | 32 | Range (in blocks) for villagers to find shelves |
+| | Shopping cooldown | 2400 ticks (2 min) | Wait time between shopping sessions |
+| | Shelves to visit (min/max) | 1 / 3 | Number of shelves visited per trip |
+| | Budget per trade | 20 | Emerald budget per shopping session |
+| **Trade Rates** | Sell penalty | 1 | Emerald deduction when selling |
+| | Purchase markup | ×5.0 | Price multiplier when buying |
+| | Food price per hunger | 0.25 | Emeralds per nutrition point |
+| | Potion base price | 3 | Base sell price for potions |
+| | Enchanted book base price | 5 | Base price for enchanted books |
+| **Feature Toggles** | Potion selling | Enabled | Allow potion trading |
+| | Enchanted book trading | Enabled | Allow enchanted book trading |
+| | Eating effects | Enabled | Villager eating animation during rest |
+| | Pause cooldown while sleeping | Enabled | Pause shopping cooldown while villagers sleep |
+| **Behavior** | Rest time (min/max) | 100 / 200 ticks | Duration of chair rest |
+| | Shopping rush chance | 0.5% | Probability of triggering a rush |
+
+### Custom Prices
+
+Edit the config file to set custom sell/buy prices for any item.
+
+```json
+{
+  "customSellPrices": {
+    "minecraft:cake": [1, 1]
+  },
+  "customBuyPrices": {},
+  "enchantedBookBuyPrices": {
+    "minecraft:mending": 125
+  }
+}
+```
+
+- `customSellPrices`: `"item_id": [emeralds, item_count]`
+- `customBuyPrices`: `"item_id": emeralds`
+- `enchantedBookBuyPrices`: `"enchantment_id": emeralds`
+
+---
+
+## Hopper Automation Guide
+
+Hopper connection directions for each block:
+
+| Block | Top / Sides (Input) | Bottom (Output) |
+|-------|:---:|:---:|
+| Selling Shelf | Items in | Emeralds out |
+| Selling Shelf (Accounting) | Items in | Emeralds out |
+| Purchase Shelf | Emeralds in | Items out |
+| Cash Register | No input | Emeralds out |
+
+---
+
+## License
+
+[MIT License](LICENSE.txt)
+
+---
+
+# Village Shop System (日本語)
+
 Minecraft 1.21.1 用の村人自動交易システム Mod です。
 村に商品棚やレジを設置すると、村人が自動的に棚を巡回してアイテムを売買します。
 
