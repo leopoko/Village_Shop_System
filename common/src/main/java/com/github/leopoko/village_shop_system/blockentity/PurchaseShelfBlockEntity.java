@@ -1,5 +1,6 @@
 package com.github.leopoko.village_shop_system.blockentity;
 
+import com.github.leopoko.village_shop_system.trade.Currency;
 import com.github.leopoko.village_shop_system.menu.PurchaseShelfMenu;
 import com.github.leopoko.village_shop_system.registry.ModBlockEntities;
 import com.github.leopoko.village_shop_system.trade.TradePriceCalculator;
@@ -12,7 +13,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -124,7 +124,7 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
         int total = 0;
         for (int i = 0; i < PURCHASE_INPUT_SLOTS; i++) {
             ItemStack stack = items.get(i);
-            if (stack.is(Items.EMERALD)) {
+            if (Currency.is(stack)) {
                 total += stack.getCount();
             }
         }
@@ -139,7 +139,7 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
         int remaining = count;
         for (int i = 0; i < PURCHASE_INPUT_SLOTS && remaining > 0; i++) {
             ItemStack stack = items.get(i);
-            if (stack.is(Items.EMERALD)) {
+            if (Currency.is(stack)) {
                 int take = Math.min(remaining, stack.getCount());
                 stack.shrink(take);
                 if (stack.isEmpty()) {
@@ -218,7 +218,7 @@ public class PurchaseShelfBlockEntity extends BaseShelfBlockEntity {
     public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
         // Only allow emeralds into input slots from top/sides
         if (direction == Direction.DOWN) return false;
-        return index < PURCHASE_INPUT_SLOTS && stack.is(Items.EMERALD);
+        return index < PURCHASE_INPUT_SLOTS && Currency.is(stack);
     }
 
     @Override

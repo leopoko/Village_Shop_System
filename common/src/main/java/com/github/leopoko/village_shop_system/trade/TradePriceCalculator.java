@@ -38,7 +38,7 @@ public final class TradePriceCalculator {
     private TradePriceCalculator() {}
 
     public static int calculateSellPrice(ItemStack stack) {
-        if (stack.isEmpty() || stack.is(Items.EMERALD)) return 0;
+        if (stack.isEmpty() || Currency.is(stack)) return 0;
 
         Item item = stack.getItem();
         int count = stack.getCount();

@@ -1,5 +1,6 @@
 package com.github.leopoko.village_shop_system.screen;
 
+import com.github.leopoko.village_shop_system.trade.Currency;
 import com.github.leopoko.village_shop_system.config.ModConfig;
 import com.github.leopoko.village_shop_system.menu.PurchaseShelfMenu;
 import com.github.leopoko.village_shop_system.trade.TradePriceCalculator;
@@ -125,7 +126,8 @@ public class PurchaseShelfScreen extends AbstractContainerScreen<PurchaseShelfMe
                             configItem.getHoverName()).withStyle(ChatFormatting.GOLD));
                     int price = TradePriceCalculator.calculateBuyPrice(configItem, 1);
                     if (price > 0) {
-                        tooltip.add(Component.translatable("tooltip.village_shop_system.purchase_shelf.price", price)
+                        tooltip.add(Component.translatable("tooltip.village_shop_system.purchase_shelf.price", price,
+                                Currency.create(1).getHoverName())
                                 .withStyle(ChatFormatting.GREEN));
                     }
                 }

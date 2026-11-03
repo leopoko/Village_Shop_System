@@ -2,6 +2,7 @@ package com.github.leopoko.village_shop_system.block;
 
 import com.github.leopoko.village_shop_system.blockentity.RegisterBlockEntity;
 import com.github.leopoko.village_shop_system.blockentity.SellingShelfBBlockEntity;
+import com.github.leopoko.village_shop_system.item.ChairSettingStick;
 import com.github.leopoko.village_shop_system.shopgroup.ShopGroupManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -56,6 +57,12 @@ public abstract class AbstractShopBlock extends BaseEntityBlock {
 
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        // Holding the Shop Setting Stick: let ChairSettingStick.useOn() handle the click.
+        // Item.useOn() only runs when Block.use() returns PASS, so opening the GUI here would swallow it.
+        if (player.getItemInHand(hand).getItem() instanceof ChairSettingStick) {
+            return InteractionResult.PASS;
+        }
+
         // Sneak + empty hand on SellingShelfB/Register: open shop group settings directly
         if (player.isShiftKeyDown()) {
             BlockEntity be = level.getBlockEntity(pos);

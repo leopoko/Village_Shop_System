@@ -24,9 +24,9 @@
   "item.village_shop_system.chair_setting_stick.holding_info": "【%s】",
   "item.village_shop_system.chair_setting_stick.holding_info_group_label": "グループ: %s",
 
-  "tooltip.village_shop_system.sell_price": "売却: %dエメラルド",
-  "tooltip.village_shop_system.sell_price_ratio": "売却: %d個 = %dエメラルド",
-  "tooltip.village_shop_system.sell_total": "スタック(%d個): 合計%dエメラルド",
+  "tooltip.village_shop_system.sell_price": "売却: %d %s",
+  "tooltip.village_shop_system.sell_price_ratio": "売却: %d個 = %d %s",
+  "tooltip.village_shop_system.sell_total": "スタック(%d個): 合計 %d %s",
   "tooltip.village_shop_system.buy_price": "購入価格: %dエメラルド",
   "tooltip.village_shop_system.not_tradeable": "取引不可",
   "tooltip.village_shop_system.price_unknown": "価格: 読み込み中...",
@@ -34,7 +34,7 @@
 
   "tooltip.village_shop_system.purchase_shelf.config_empty": "アイテムを持ってクリックで購入対象を設定",
   "tooltip.village_shop_system.purchase_shelf.config_set": "購入品: %s",
-  "tooltip.village_shop_system.purchase_shelf.price": "コスト: %dエメラルド/個",
+  "tooltip.village_shop_system.purchase_shelf.price": "コスト: %d %s/個",
 
   "tooltip.village_shop_system.trade_info_header": "§e§l【取引可能アイテム】",
   "tooltip.village_shop_system.trade_info_more": "...他%d件のアイテム",
@@ -75,6 +75,8 @@
   "config.village_shop_system.villager_trade_xp": "取引経験値",
   "config.village_shop_system.villager_trade_xp.tooltip": "棚1回のインタラクションで得る経験値（デフォルト: 1）",
 
+  "config.village_shop_system.currency_item": "通貨アイテム",
+  "config.village_shop_system.currency_item.tooltip": "棚とレジでお金として使うアイテムID（他Modのコインなど）。バニラ取引の価格はこのアイテムで1:1に支払われます。サーバーとクライアントで同じ値を設定してください。（デフォルト: minecraft:emerald）",
   "config.village_shop_system.selling_emerald_penalty": "売却ペナルティ",
   "config.village_shop_system.selling_emerald_penalty.tooltip": "売却時のエメラルドペナルティ（デフォルト: 1）",
   "config.village_shop_system.purchase_price_multiplier": "購入価格倍率",

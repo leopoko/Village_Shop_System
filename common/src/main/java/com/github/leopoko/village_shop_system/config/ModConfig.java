@@ -32,6 +32,8 @@ public final class ModConfig {
     public static int villagerTradeXp = 1;
 
     // === Trade Rates ===
+    /** Item used as money by shelves and registers (e.g. a coin item from another mod). */
+    public static String currencyItem = "minecraft:emerald";
     public static int sellingEmeraldPenalty = 1;
     public static double purchasePriceMultiplier = 5.0;
     public static double foodPricePerHunger = 0.25;
@@ -87,8 +89,9 @@ public final class ModConfig {
         int villagerTradeXp = 1;
 
         // Trade Rates
+        String currencyItem = "minecraft:emerald";
         int sellingEmeraldPenalty = 1;
-        double purchasePriceMultiplier = 1.2;
+        double purchasePriceMultiplier = 5.0;
         double foodPricePerHunger = 0.25;
         int potionBasePrice = 3;
         int potionDurationUnit = 3600;
@@ -110,7 +113,7 @@ public final class ModConfig {
         int maxRestTicks = 200;
         boolean pauseCooldownWhileSleeping = true;
         boolean villagerEatingEffects = true;
-        double shoppingRushChance = 0.05;
+        double shoppingRushChance = 0.005;
     }
 
     /**
@@ -148,6 +151,7 @@ public final class ModConfig {
         data.maxShelvesToVisit = maxShelvesToVisit;
         data.villagerBudgetPerTrade = villagerBudgetPerTrade;
         data.villagerTradeXp = villagerTradeXp;
+        data.currencyItem = currencyItem;
         data.sellingEmeraldPenalty = sellingEmeraldPenalty;
         data.purchasePriceMultiplier = purchasePriceMultiplier;
         data.foodPricePerHunger = foodPricePerHunger;
@@ -185,6 +189,7 @@ public final class ModConfig {
         maxShelvesToVisit = data.maxShelvesToVisit;
         villagerBudgetPerTrade = data.villagerBudgetPerTrade;
         villagerTradeXp = data.villagerTradeXp;
+        currencyItem = data.currencyItem != null && !data.currencyItem.isBlank() ? data.currencyItem : "minecraft:emerald";
         sellingEmeraldPenalty = data.sellingEmeraldPenalty;
         purchasePriceMultiplier = data.purchasePriceMultiplier;
         foodPricePerHunger = data.foodPricePerHunger;
