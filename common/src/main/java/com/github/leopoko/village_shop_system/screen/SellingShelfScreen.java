@@ -1,5 +1,6 @@
 package com.github.leopoko.village_shop_system.screen;
 
+import com.github.leopoko.village_shop_system.trade.Currency;
 import com.github.leopoko.village_shop_system.blockentity.BaseShelfBlockEntity;
 import com.github.leopoko.village_shop_system.blockentity.SellingShelfBBlockEntity;
 import com.github.leopoko.village_shop_system.menu.SellingShelfMenu;
@@ -216,17 +217,17 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
             int itemsNeeded = ratio[1];
             if (itemsNeeded == 1) {
                 tooltip.add(Component.translatable("tooltip.village_shop_system.sell_price",
-                        emeralds).withStyle(ChatFormatting.GREEN));
+                        emeralds, Currency.create(1).getHoverName()).withStyle(ChatFormatting.GREEN));
             } else {
                 tooltip.add(Component.translatable("tooltip.village_shop_system.sell_price_ratio",
-                        itemsNeeded, emeralds).withStyle(ChatFormatting.GREEN));
+                        itemsNeeded, emeralds, Currency.create(1).getHoverName()).withStyle(ChatFormatting.GREEN));
             }
 
             // Show total for current stack
             int totalEmeralds = TradePriceCalculator.calculateSellPrice(stack);
             if (totalEmeralds > 0 && stack.getCount() > 1) {
                 tooltip.add(Component.translatable("tooltip.village_shop_system.sell_total",
-                        stack.getCount(), totalEmeralds).withStyle(ChatFormatting.DARK_GREEN));
+                        stack.getCount(), totalEmeralds, Currency.create(1).getHoverName()).withStyle(ChatFormatting.DARK_GREEN));
             }
         } else {
             // No ratio available (potion/enchanted book prices depend on component data)
@@ -234,7 +235,7 @@ public class SellingShelfScreen extends AbstractContainerScreen<SellingShelfMenu
             int totalEmeralds = TradePriceCalculator.calculateSellPrice(stack);
             if (totalEmeralds > 0) {
                 tooltip.add(Component.translatable("tooltip.village_shop_system.sell_price",
-                        totalEmeralds).withStyle(ChatFormatting.GREEN));
+                        totalEmeralds, Currency.create(1).getHoverName()).withStyle(ChatFormatting.GREEN));
             } else {
                 tooltip.add(Component.translatable("tooltip.village_shop_system.not_tradeable")
                         .withStyle(ChatFormatting.RED));

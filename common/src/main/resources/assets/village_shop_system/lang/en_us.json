@@ -24,9 +24,9 @@
   "item.village_shop_system.chair_setting_stick.holding_info": "[%s]",
   "item.village_shop_system.chair_setting_stick.holding_info_group_label": "Group: %s",
 
-  "tooltip.village_shop_system.sell_price": "Sell: %d Emerald(s)",
-  "tooltip.village_shop_system.sell_price_ratio": "Sell: %d items = %d Emerald(s)",
-  "tooltip.village_shop_system.sell_total": "Stack (%d): %d Emerald(s) total",
+  "tooltip.village_shop_system.sell_price": "Sell: %d %s",
+  "tooltip.village_shop_system.sell_price_ratio": "Sell: %d items = %d %s",
+  "tooltip.village_shop_system.sell_total": "Stack (%d): %d %s total",
   "tooltip.village_shop_system.buy_price": "Buy price: %d Emerald(s)",
   "tooltip.village_shop_system.not_tradeable": "Not tradeable",
   "tooltip.village_shop_system.price_unknown": "Price: Loading...",
@@ -34,7 +34,7 @@
 
   "tooltip.village_shop_system.purchase_shelf.config_empty": "Click with item to set purchase target",
   "tooltip.village_shop_system.purchase_shelf.config_set": "Purchasing: %s",
-  "tooltip.village_shop_system.purchase_shelf.price": "Cost: %d Emerald(s) each",
+  "tooltip.village_shop_system.purchase_shelf.price": "Cost: %d %s each",
 
   "tooltip.village_shop_system.trade_info_header": "§e§l[Tradeable Items]",
   "tooltip.village_shop_system.trade_info_more": "...and %d more items",
@@ -75,6 +75,8 @@
   "config.village_shop_system.villager_trade_xp": "Trade XP",
   "config.village_shop_system.villager_trade_xp.tooltip": "XP earned by villager per shelf interaction (default: 1)",
 
+  "config.village_shop_system.currency_item": "Currency Item",
+  "config.village_shop_system.currency_item.tooltip": "Item ID used as money by shelves and registers, e.g. a coin from another mod. Prices from vanilla trades are paid 1:1 in this item. Set the same value on server and clients. (default: minecraft:emerald)",
   "config.village_shop_system.selling_emerald_penalty": "Selling Penalty",
   "config.village_shop_system.selling_emerald_penalty.tooltip": "Emerald penalty for selling items (default: 1)",
   "config.village_shop_system.purchase_price_multiplier": "Purchase Multiplier",

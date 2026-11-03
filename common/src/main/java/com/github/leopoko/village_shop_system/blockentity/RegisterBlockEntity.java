@@ -1,5 +1,6 @@
 package com.github.leopoko.village_shop_system.blockentity;
 
+import com.github.leopoko.village_shop_system.trade.Currency;
 import com.github.leopoko.village_shop_system.menu.RegisterMenu;
 import com.github.leopoko.village_shop_system.registry.ModBlockEntities;
 import net.minecraft.world.Container;
@@ -13,7 +14,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,20 +49,8 @@ public class RegisterBlockEntity extends BaseShelfBlockEntity {
      * @return number of emeralds actually inserted
      */
     public int insertEmeralds(int count) {
-        int remaining = count;
-        for (int i = 0; i < TOTAL_SLOTS && remaining > 0; i++) {
-            ItemStack existing = items.get(i);
-            if (existing.isEmpty()) {
-                int toInsert = Math.min(remaining, 64);
-                items.set(i, new ItemStack(Items.EMERALD, toInsert));
-                remaining -= toInsert;
-            } else if (existing.is(Items.EMERALD) && existing.getCount() < 64) {
-                int space = 64 - existing.getCount();
-                int toInsert = Math.min(remaining, space);
-                existing.grow(toInsert);
-                remaining -= toInsert;
-            }
-        }
+        int inserted = Currency.insert(items, 0, TOTAL_SLOTS, count);
+        int remaining = count - inserted;
         if (remaining < count) {
             setChanged();
             syncToClient();
@@ -74,13 +62,7 @@ public class RegisterBlockEntity extends BaseShelfBlockEntity {
      * Check if the register has space for more emeralds.
      */
     public boolean hasEmeraldSpace() {
-        for (int i = 0; i < TOTAL_SLOTS; i++) {
-            ItemStack existing = items.get(i);
-            if (existing.isEmpty() || (existing.is(Items.EMERALD) && existing.getCount() < 64)) {
-                return true;
-            }
-        }
-        return false;
+        return Currency.hasSpace(items, 0, TOTAL_SLOTS);
     }
 
     // --- WorldlyContainer: no input via hopper, bottom=emerald output ---
@@ -104,7 +86,7 @@ public class RegisterBlockEntity extends BaseShelfBlockEntity {
     @Override
     public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
         // Only emeralds from bottom
-        return direction == Direction.DOWN && stack.is(Items.EMERALD);
+        return direction == Direction.DOWN && Currency.is(stack);
     }
 
     // --- MenuProvider ---

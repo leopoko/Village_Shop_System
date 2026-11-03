@@ -1,5 +1,6 @@
 package com.github.leopoko.village_shop_system.blockentity;
 
+import com.github.leopoko.village_shop_system.trade.Currency;
 import com.github.leopoko.village_shop_system.menu.SellingShelfMenu;
 import com.github.leopoko.village_shop_system.registry.ModBlockEntities;
 import com.github.leopoko.village_shop_system.shopgroup.ShopGroup;
@@ -16,7 +17,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -145,21 +145,7 @@ public class SellingShelfBBlockEntity extends BaseShelfBlockEntity {
      * Insert emeralds into local output slots.
      */
     private int insertLocalEmeralds(int count) {
-        int remaining = count;
-        for (int i = INPUT_SLOTS; i < TOTAL_SLOTS && remaining > 0; i++) {
-            ItemStack existing = items.get(i);
-            if (existing.isEmpty()) {
-                int toInsert = Math.min(remaining, 64);
-                items.set(i, new ItemStack(Items.EMERALD, toInsert));
-                remaining -= toInsert;
-            } else if (existing.is(Items.EMERALD) && existing.getCount() < 64) {
-                int space = 64 - existing.getCount();
-                int toInsert = Math.min(remaining, space);
-                existing.grow(toInsert);
-                remaining -= toInsert;
-            }
-        }
-        return count - remaining;
+        return Currency.insert(items, INPUT_SLOTS, TOTAL_SLOTS, count);
     }
 
     /**
@@ -172,7 +158,7 @@ public class SellingShelfBBlockEntity extends BaseShelfBlockEntity {
         int totalLocalEmeralds = 0;
         for (int i = INPUT_SLOTS; i < TOTAL_SLOTS; i++) {
             ItemStack stack = items.get(i);
-            if (!stack.isEmpty() && stack.is(Items.EMERALD)) {
+            if (Currency.is(stack)) {
                 totalLocalEmeralds += stack.getCount();
             }
         }
@@ -186,7 +172,7 @@ public class SellingShelfBBlockEntity extends BaseShelfBlockEntity {
         int toRemove = sent;
         for (int i = INPUT_SLOTS; i < TOTAL_SLOTS && toRemove > 0; i++) {
             ItemStack stack = items.get(i);
-            if (!stack.isEmpty() && stack.is(Items.EMERALD)) {
+            if (Currency.is(stack)) {
                 int remove = Math.min(toRemove, stack.getCount());
                 stack.shrink(remove);
                 if (stack.isEmpty()) {
@@ -212,11 +198,8 @@ public class SellingShelfBBlockEntity extends BaseShelfBlockEntity {
 
     public boolean hasOutputSpace() {
         // Check local output space
-        for (int i = INPUT_SLOTS; i < TOTAL_SLOTS; i++) {
-            ItemStack existing = items.get(i);
-            if (existing.isEmpty() || (existing.is(Items.EMERALD) && existing.getCount() < 64)) {
-                return true;
-            }
+        if (Currency.hasSpace(items, INPUT_SLOTS, TOTAL_SLOTS)) {
+            return true;
         }
         // Also check registers if in a group
         if (!shopGroup.isEmpty() && level instanceof ServerLevel serverLevel) {
@@ -246,7 +229,7 @@ public class SellingShelfBBlockEntity extends BaseShelfBlockEntity {
     @Override
     public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
         if (direction == Direction.DOWN) return false;
-        return index < INPUT_SLOTS && !stack.is(Items.EMERALD);
+        return index < INPUT_SLOTS && !Currency.is(stack);
     }
 
     @Override

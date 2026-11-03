@@ -1,5 +1,6 @@
 package com.github.leopoko.village_shop_system.menu;
 
+import com.github.leopoko.village_shop_system.trade.Currency;
 import com.github.leopoko.village_shop_system.blockentity.BaseShelfBlockEntity;
 import com.github.leopoko.village_shop_system.blockentity.PurchaseShelfBlockEntity;
 import com.github.leopoko.village_shop_system.registry.ModMenuTypes;
@@ -11,7 +12,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 public class PurchaseShelfMenu extends AbstractContainerMenu {
     private final Container container;
@@ -98,7 +98,7 @@ public class PurchaseShelfMenu extends AbstractContainerMenu {
                 }
             } else if (index > containerSlots) {
                 // Move from player inventory to container (only emeralds to input)
-                if (current.is(Items.EMERALD)) {
+                if (Currency.is(current)) {
                     if (!this.moveItemStackTo(current, 0, PurchaseShelfBlockEntity.PURCHASE_INPUT_SLOTS, false)) {
                         return ItemStack.EMPTY;
                     }
@@ -134,7 +134,7 @@ public class PurchaseShelfMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            return stack.is(Items.EMERALD);
+            return Currency.is(stack);
         }
     }
 

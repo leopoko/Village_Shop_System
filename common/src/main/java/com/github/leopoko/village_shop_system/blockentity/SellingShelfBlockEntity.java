@@ -1,5 +1,6 @@
 package com.github.leopoko.village_shop_system.blockentity;
 
+import com.github.leopoko.village_shop_system.trade.Currency;
 import com.github.leopoko.village_shop_system.menu.SellingShelfMenu;
 import com.github.leopoko.village_shop_system.registry.ModBlockEntities;
 import com.github.leopoko.village_shop_system.trade.TradePriceCalculator;
@@ -10,7 +11,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +39,7 @@ public class SellingShelfBlockEntity extends BaseShelfBlockEntity {
     public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
         // Only allow non-emerald items into input slots from top/sides
         if (direction == Direction.DOWN) return false;
-        return index < INPUT_SLOTS && !stack.is(Items.EMERALD);
+        return index < INPUT_SLOTS && !Currency.is(stack);
     }
 
     @Override
@@ -116,21 +116,7 @@ public class SellingShelfBlockEntity extends BaseShelfBlockEntity {
      * @return number of emeralds actually inserted
      */
     private int insertEmeralds(int count) {
-        int remaining = count;
-        for (int i = INPUT_SLOTS; i < TOTAL_SLOTS && remaining > 0; i++) {
-            ItemStack existing = items.get(i);
-            if (existing.isEmpty()) {
-                int toInsert = Math.min(remaining, 64);
-                items.set(i, new ItemStack(Items.EMERALD, toInsert));
-                remaining -= toInsert;
-            } else if (existing.is(Items.EMERALD) && existing.getCount() < 64) {
-                int space = 64 - existing.getCount();
-                int toInsert = Math.min(remaining, space);
-                existing.grow(toInsert);
-                remaining -= toInsert;
-            }
-        }
-        return count - remaining;
+        return Currency.insert(items, INPUT_SLOTS, TOTAL_SLOTS, count);
     }
 
     /**
@@ -150,11 +136,8 @@ public class SellingShelfBlockEntity extends BaseShelfBlockEntity {
      * Check if there's space in output slots for emeralds.
      */
     public boolean hasOutputSpace() {
-        for (int i = INPUT_SLOTS; i < TOTAL_SLOTS; i++) {
-            ItemStack existing = items.get(i);
-            if (existing.isEmpty() || (existing.is(Items.EMERALD) && existing.getCount() < 64)) {
-                return true;
-            }
+        if (Currency.hasSpace(items, INPUT_SLOTS, TOTAL_SLOTS)) {
+            return true;
         }
         return false;
     }

@@ -110,6 +110,10 @@ publishMods {
         javaVersions.add(JavaVersion.VERSION_21)
         requires("architectury-api")
         requires("cloth-config")
+        // CurseForge は環境グループ (Client/Server) の指定を必須とする（未指定だと 400 で拒否される）。
+        // ブロック・村人AIはサーバー側、GUIとツールチップはクライアント側にあるため両方必要。
+        clientRequired = true
+        serverRequired = true
     }
 
     // Fabric版

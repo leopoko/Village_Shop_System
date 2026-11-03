@@ -1,5 +1,6 @@
 package com.github.leopoko.village_shop_system.config;
 
+import com.github.leopoko.village_shop_system.trade.Currency;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
@@ -88,6 +89,14 @@ public final class ModConfigScreen {
         // === Trade Rates Category ===
         ConfigCategory tradeRates = builder.getOrCreateCategory(
                 Component.translatable("config.village_shop_system.category.trade_rates"));
+
+        tradeRates.addEntry(entryBuilder.startStrField(
+                        Component.translatable("config.village_shop_system.currency_item"),
+                        ModConfig.currencyItem)
+                .setDefaultValue("minecraft:emerald")
+                .setTooltip(Component.translatable("config.village_shop_system.currency_item.tooltip"))
+                .setSaveConsumer(val -> ModConfig.currencyItem = val)
+                .build());
 
         tradeRates.addEntry(entryBuilder.startIntField(
                         Component.translatable("config.village_shop_system.selling_emerald_penalty"),
